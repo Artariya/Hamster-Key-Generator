@@ -7,3 +7,5 @@ Unlimited and professional hamster key making
 Features:
 - Run multiple generator at the same time
 - Store in sqlite database
+- decrease and increase automatically request delay
+- set minimum delay for generation
