@@ -8,3 +8,8 @@ Features:
 - Store in sqlite database
 - decrease and increase automatically request delay
 - set minimum delay for generation
+
+---
+## Donation
+- **Tron:** `TWyv64Sba7sgmuiVmNEbdEdh8mM4BhLsbF`
+- **Ton:** `UQDtCY0_9UcJlMJOtffHC5T9BcioRJc7BVXfZNlEyWpYVcS9`
