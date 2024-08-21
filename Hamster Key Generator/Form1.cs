@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using Newtonsoft.Json;
 using System.Linq;
 using System.IO;
@@ -12,15 +13,21 @@ using Flurl;
 using Flurl.Http;
 using System.Data.SQLite;
 using Dapper;
-
+using System.Security.Cryptography;
 
 namespace Hamster_Key_Generator
 {
     public partial class FormMain : Form
     {
         Game[] Games;
-        Game selectedGame = null;
-        int progressTime = 0;
+        static int progressTime = 0;
+        static ToolStripLabel LabelKeys;
+        static ToolStripLabel LabelRequest;
+        static NumericUpDown DelayNumericInput;
+        static ListBox ListBoxKeys;
+        static ProgressBar ProgressBarMain;
+        static RichTextBox RichTextBoxLogs;
+
 
         public FormMain()
         {
@@ -50,11 +57,12 @@ namespace Hamster_Key_Generator
 
         private async void buttonGenerate_Click(object sender, EventArgs e)
         {
-            if (selectedGame != null)
+            if (comboBoxGames.SelectedIndex<0)
             {
-                Log("Another proccess is runing!", Color.Red);
+                Log("Please select a game", Color.Orange);
                 return;
             }
+            Game selectedGame = null;
             // check exists game
             foreach (Game item in Games)
             {
@@ -70,125 +78,22 @@ namespace Hamster_Key_Generator
                 return;
             }
 
-            // start generation
-            numericUpDownMinimumDelay.Value = selectedGame.eventsDelay;
-            for (int keyNumber = 1; keyNumber <= numericUpDownCount.Value; keyNumber++)
+            buttonGenerate.Enabled = false;
+            int countProcess = (int)numericUpDownProccess.Value;
+            labelProccess.Text = "Processes: " + countProcess;
+            Task[] processes = new Task[countProcess];
+            for (int i = 0; i < countProcess; i++)
             {
-                Log("Start generating key " + keyNumber);
-                string clientToken = null;
-                try
+                if (checkBoxProccessRandomDelay.Checked)
                 {
-                    clientToken = await Login(selectedGame.appToken);
-                    Log("Client token: " + clientToken);
+                    await Task.Delay(new Random().Next(0, 5000));
                 }
-                catch
-                {
-                    Log("Login failed", Color.Red);
-                    await Task.Delay(new Random().Next(0, 3000) + 5000);
-                    keyNumber--;
-                    continue;
-                }
-
-                int attempts = 1;
-                int response = 0;
-                int surplusDelay = 0;
-                bool restartClient = false;
-                int repeatedSuccessCount = 0;
-                Random rand = new Random();
-                Log("Sending requests ...", Color.Cyan);
-                while (response != 200)
-                {
-
-                    int delays = selectedGame.eventsDelay + rand.Next(-2000, 2000) + surplusDelay;
-                    if (delays < numericUpDownMinimumDelay.Value)
-                    {
-                        delays = (int)numericUpDownMinimumDelay.Value + rand.Next(0, 1000);
-                    }
-                    initProgress();
-                    Log("Request " + attempts + " (" + delays.ToString() + ") ...");
-                    attempts++;
-                    progressTime = delays;
-                    await Task.Delay(delays);
-                    try
-                    {
-                        response = await Request(clientToken, selectedGame.promoId);
-                    }
-                    catch
-                    {
-                        Log("Http error", Color.Red);
-                        continue;
-                    }
-                    if (response == 2)
-                    {
-                        repeatedSuccessCount = 0;
-                        Log("Session for client not valid", Color.Red);
-                        restartClient = true;
-                        break;
-                    }
-                    else if (response == 3)
-                    {
-                        repeatedSuccessCount = 0;
-                        Log("Requests are very fast - Increase delay", Color.Orange);
-                        surplusDelay += 2000;
-                    }
-                    else if (response == 400)
-                    {
-                        repeatedSuccessCount = 0;
-                        Log("Undefined error");
-                    }
-                    else if (response == 1)
-                    {
-                        repeatedSuccessCount++;
-                        if (repeatedSuccessCount >= 3)
-                        {
-                            Log("Delay decreased", Color.Orange);
-                            surplusDelay -= 1000;
-                            repeatedSuccessCount = 0;
-                        }
-                    }
-                    progressBarMain.Value = 100;
-                }
-                if (restartClient)
-                {
-                    keyNumber--;
-                    continue;
-                }
-
-                // get key
-                string key;
-                try
-                {
-                    key = await GenerateKey(clientToken, selectedGame.promoId);
-                }
-                catch (Exception)
-                {
-                    Log("Failed to generate key", Color.Red);
-                    keyNumber--;
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(key))
-                {
-                    Log("Failed to generate key", Color.Red);
-                    keyNumber--;
-                    continue;
-                }
-                switch (AddKeyToDatabase(key, selectedGame.platform))
-                {
-                    case 0:
-                        Log("Failed saving key on database", Color.Red);
-                        break;
-                    case 100:
-                        Log("Key exists!", Color.Pink);
-                        break;
-                }
-                listBoxKeys.Items.Add(key);
-                listBoxKeys.TopIndex = listBoxKeys.Items.Count - 1;
-
-                Log("Key successfully generated: " + key, Color.LimeGreen);
+                processes[i] = Process(selectedGame, (int)numericUpDownCount.Value, "Proc_" + (i + 1));
             }
-            Log("Proccess finished", Color.Lime);
-            selectedGame = null;
+
+            await Task.WhenAll(processes);
+            Log("All processes finished", Color.LimeGreen);
+            buttonGenerate.Enabled = true;
         }
 
         public static async Task<string> Login(string token)
@@ -299,6 +204,7 @@ namespace Hamster_Key_Generator
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            refreshStatics();
             timer1.Start();
             comboBoxGames.Items.Clear();
             for (int i = 0; i < Games.Count(); i++)
@@ -307,23 +213,32 @@ namespace Hamster_Key_Generator
             }
         }
 
-        private void Log(string text, Color color = default(Color))
+        static private void Log(string text, Color color = default(Color), string section = null)
         {
             DateTime now = DateTime.Now;
             string formattedTime = now.ToString("HH:mm:ss");
-            richTextBoxLogs.AppendText("[" + formattedTime + "] ");
-            Color originalColor = richTextBoxLogs.SelectionColor;
+            RichTextBoxLogs.AppendText("[" + formattedTime + "]");
+            Color originalColor = RichTextBoxLogs.SelectionColor;
+            if (section != null)
+            {
+                RichTextBoxLogs.AppendText("(");
+                RichTextBoxLogs.SelectionColor = GetColorFromText(section);
+                RichTextBoxLogs.AppendText(section);
+                RichTextBoxLogs.SelectionColor = originalColor;
+                RichTextBoxLogs.AppendText(")");
+            }
+            RichTextBoxLogs.AppendText(" ");
             if (color.IsKnownColor)
             {
-                richTextBoxLogs.SelectionColor = color;
+                RichTextBoxLogs.SelectionColor = color;
             }
             else
             {
-                richTextBoxLogs.SelectionColor = Color.White;
+                RichTextBoxLogs.SelectionColor = Color.White;
             }
-            richTextBoxLogs.AppendText(text + "\n");
-            richTextBoxLogs.SelectionColor = originalColor;
-            richTextBoxLogs.ScrollToCaret();
+            RichTextBoxLogs.AppendText(text + "\n");
+            RichTextBoxLogs.SelectionColor = originalColor;
+            RichTextBoxLogs.ScrollToCaret();
         }
 
         private void buttonCopy_Click(object sender, EventArgs e)
@@ -350,11 +265,6 @@ namespace Hamster_Key_Generator
             Log("All items copied to clipboard.", Color.Yellow);
         }
 
-        private void initProgress()
-        {
-            progressBarMain.Value = 0;
-        }
-
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (progressTime > 0)
@@ -367,7 +277,7 @@ namespace Hamster_Key_Generator
             }
         }
 
-        int AddKeyToDatabase(string key, string platform)
+        static int AddKeyToDatabase(string key, string platform)
         {
             try
             {
@@ -395,6 +305,208 @@ namespace Hamster_Key_Generator
                 Log("Error: " + ex.Message, Color.Red);
                 return 0;
             }
+        }
+
+        static private async Task Process(Game g, int keyCount, string processName)
+        {
+            for (int keyNumber = 1; keyNumber <= keyCount; keyNumber++)
+            {
+                Log("Start generating key " + keyNumber, section: processName);
+                string clientToken = null;
+                try
+                {
+                    clientToken = await Login(g.appToken);
+                    Log("Client token: " + clientToken, section: processName);
+                }
+                catch
+                {
+                    Log("Login failed", Color.Red, section: processName);
+                    await Task.Delay(new Random().Next(0, 3000) + 5000);
+                    keyNumber--;
+                    continue;
+                }
+
+                int attempts = 1;
+                int response = 0;
+                int surplusDelay = 0;
+                bool restartClient = false;
+                int repeatedSuccessCount = 0;
+                Random rand = new Random();
+                Log("Sending requests ...", Color.Cyan, section: processName);
+                while (response != 200)
+                {
+                    int delays = g.eventsDelay + rand.Next(-2000, 2000) + surplusDelay;
+                    if (delays < DelayNumericInput.Value)
+                    {
+                        delays = (int)DelayNumericInput.Value + rand.Next(0, 1000);
+                    }
+                    if (ProgressBarMain.Value == 0 || ProgressBarMain.Value == 100)
+                    {
+                        ProgressBarMain.Value = 0;
+                        progressTime = delays;
+                    }
+                    Log("Request " + attempts + " (" + delays.ToString("N0") + ") ...", section: processName);
+                    LabelRequest.Text = "Last request: " + attempts;
+                    attempts++;
+                    await Task.Delay(delays);
+                    try
+                    {
+                        response = await Request(clientToken, g.promoId);
+                    }
+                    catch
+                    {
+                        Log("Http error", Color.Red, section: processName);
+                        continue;
+                    }
+                    if (response == 2)
+                    {
+                        repeatedSuccessCount = 0;
+                        Log("Session for client not valid", Color.Red, section: processName);
+                        restartClient = true;
+                        break;
+                    }
+                    else if (response == 3)
+                    {
+                        repeatedSuccessCount = 0;
+                        Log("Requests are very fast - Increase delay", Color.Orange, section: processName);
+                        surplusDelay += 2000;
+                    }
+                    else if (response == 400)
+                    {
+                        repeatedSuccessCount = 0;
+                        Log("Undefined error", section: processName);
+                    }
+                    else if (response == 1)
+                    {
+                        repeatedSuccessCount++;
+                        if (repeatedSuccessCount >= 3)
+                        {
+                            Log("Delay decreased", Color.Orange, section: processName);
+                            surplusDelay -= 1000;
+                            repeatedSuccessCount = 0;
+                        }
+                    }
+                    ProgressBarMain.Value = 100;
+                }
+                if (restartClient)
+                {
+                    keyNumber--;
+                    continue;
+                }
+
+                // get key
+                string key;
+                try
+                {
+                    key = await GenerateKey(clientToken, g.promoId);
+                }
+                catch (Exception)
+                {
+                    Log("Failed to generate key", Color.Red, section: processName);
+                    keyNumber--;
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(key))
+                {
+                    Log("Failed to generate key", Color.Red, section: processName);
+                    keyNumber--;
+                    continue;
+                }
+                switch (AddKeyToDatabase(key, g.platform))
+                {
+                    case 0:
+                        Log("Failed saving key on database", Color.Red, section: processName);
+                        break;
+                    case 100:
+                        Log("Key exists!", Color.Pink, section: processName);
+                        break;
+                }
+                ListBoxKeys.Items.Add(key);
+                ListBoxKeys.TopIndex = ListBoxKeys.Items.Count - 1;
+                LabelKeys.Text = "Keys: " + ListBoxKeys.Items.Count;
+
+                Log("Key successfully generated: " + key, Color.LimeGreen, section: processName);
+            }
+            Log("Process finished", Color.Lime, section: processName);
+        }
+
+        private void comboBoxGames_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Game selectedGame = null;
+            // check exists game
+            foreach (Game item in Games)
+            {
+                if (item.name == comboBoxGames.Text)
+                {
+                    selectedGame = item;
+                }
+            }
+            if (selectedGame == null)
+            {
+                return;
+            }
+
+            numericUpDownMinimumDelay.Value = selectedGame.eventsDelay;
+            refreshStatics();
+        }
+
+        private void refreshStatics()
+        {
+            LabelKeys = labelKeys;
+            LabelRequest = labelRequest;
+            DelayNumericInput = numericUpDownMinimumDelay;
+            ListBoxKeys = listBoxKeys;
+            ProgressBarMain = progressBarMain;
+            RichTextBoxLogs = richTextBoxLogs;
+        }
+
+        public static Color GetColorFromText(string input)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input + "artariya"));
+                int hue = BitConverter.ToUInt16(hash, 0) % 360;
+
+                return HslToRgb(hue, 1.0, 0.5);
+            }
+        }
+
+        public static Color HslToRgb(double h, double s, double l)
+        {
+            double c = (1.0 - Math.Abs(2.0 * l - 1.0)) * s;
+            double x = c * (1.0 - Math.Abs((h / 60.0) % 2.0 - 1.0));
+            double m = l - c / 2.0;
+
+            double r, g, b;
+            if (h < 60)
+            {
+                r = c; g = x; b = 0;
+            }
+            else if (h < 120)
+            {
+                r = x; g = c; b = 0;
+            }
+            else if (h < 180)
+            {
+                r = 0; g = c; b = x;
+            }
+            else if (h < 240)
+            {
+                r = 0; g = x; b = c;
+            }
+            else if (h < 300)
+            {
+                r = x; g = 0; b = c;
+            }
+            else
+            {
+                r = c; g = 0; b = x;
+            }
+            int R = (int)((r + m) * 255);
+            int G = (int)((g + m) * 255);
+            int B = (int)((b + m) * 255);
+            return Color.FromArgb(R, G, B);
         }
     }
 }
