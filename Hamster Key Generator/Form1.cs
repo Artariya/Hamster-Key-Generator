@@ -14,6 +14,8 @@ using Dapper;
 using System.Security.Cryptography;
 using System.Net;
 using MihaZupan;
+using System.Media;
+using System.Diagnostics;
 
 namespace Hamster_Key_Generator
 {
@@ -34,6 +36,7 @@ namespace Hamster_Key_Generator
         private static TextBox _textBoxSocks5Port;
         private static TextBox _textBoxHttpHost;
         private static TextBox _textBoxHttpPort;
+        private static NotifyIcon _notifyIconMain;
 
 
         public FormMain()
@@ -88,7 +91,13 @@ namespace Hamster_Key_Generator
                 return;
             }
 
+            // Start generation
+            notifyIconMain.Text = selectedGame.name;
             buttonGenerate.Enabled = false;
+            numericUpDownCount.Enabled = false;
+            numericUpDownProccess.Enabled = false;
+            comboBoxGames.Enabled = false;
+            checkBoxProccessRandomDelay.Enabled = false;
             int countProcess = (int)numericUpDownProccess.Value;
             labelProccess.Text = $@"Processes: {countProcess}";
             Task[] processes = new Task[countProcess];
@@ -99,12 +108,17 @@ namespace Hamster_Key_Generator
                     await Task.Delay(new Random().Next(0, 5000));
                 }
 
-                processes[i] = Process(selectedGame, (int)numericUpDownCount.Value, "Proc_" + (i + 1));
+                processes[i] = RunProcess(selectedGame, (int)numericUpDownCount.Value, "Proc_" + (i + 1));
             }
 
             await Task.WhenAll(processes);
             Log("All processes finished", Color.LimeGreen);
+            notifyIconMain.ShowBalloonTip(5000, selectedGame.name + " was finished", "Now you have " + listBoxKeys.Items.Count + " keys.", ToolTipIcon.Info);
             buttonGenerate.Enabled = true;
+            numericUpDownCount.Enabled = true;
+            numericUpDownProccess.Enabled = true;
+            comboBoxGames.Enabled = true;
+            checkBoxProccessRandomDelay.Enabled = true;
         }
 
         private static async Task<string> Login(string token)
@@ -252,27 +266,33 @@ namespace Hamster_Key_Generator
 
         private void buttonCopy_Click(object sender, EventArgs e)
         {
-            if (listBoxKeys.SelectedItem != null)
+            if (listBoxKeys.Items.Count > 0)
             {
-                Clipboard.SetText(listBoxKeys.SelectedItem.ToString());
-                Log("Item copied to clipboard: " + listBoxKeys.SelectedItem, Color.Yellow);
-            }
-            else
-            {
-                Log("No item selected to copy.", Color.Yellow);
+                if (listBoxKeys.SelectedItem != null)
+                {
+                    Clipboard.SetText(listBoxKeys.SelectedItem.ToString());
+                    Log("Item copied to clipboard: " + listBoxKeys.SelectedItem, Color.Yellow);
+                }
+                else
+                {
+                    Log("No item selected to copy.", Color.Yellow);
+                }
             }
         }
 
         private void buttonCopyAll_Click(object sender, EventArgs e)
         {
-            StringBuilder allItems = new StringBuilder();
-            foreach (var item in listBoxKeys.Items)
+            if (listBoxKeys.Items.Count > 0)
             {
-                allItems.AppendLine(item.ToString());
-            }
+                StringBuilder allItems = new StringBuilder();
+                foreach (var item in listBoxKeys.Items)
+                {
+                    allItems.AppendLine(item.ToString());
+                }
 
-            Clipboard.SetText(allItems.ToString());
-            Log("All items copied to clipboard.", Color.Yellow);
+                Clipboard.SetText(allItems.ToString());
+                Log("All items copied to clipboard.", Color.Yellow);
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -311,12 +331,13 @@ namespace Hamster_Key_Generator
             }
             catch (Exception ex)
             {
+                SystemSounds.Hand.Play();
                 Log("Error: " + ex.Message, Color.Red, "DataBase");
                 return 0;
             }
         }
 
-        private static async Task Process(Game g, int keyCount, string processName)
+        private static async Task RunProcess(Game g, int keyCount, string processName)
         {
             for (int keyNumber = 1; keyNumber <= keyCount; keyNumber++)
             {
@@ -327,9 +348,10 @@ namespace Hamster_Key_Generator
                     clientToken = await Login(g.appToken);
                     Log("Client token: " + clientToken, section: processName);
                 }
-                catch
+                catch (Exception e)
                 {
-                    Log("Login failed", Color.Red, section: processName);
+                    SystemSounds.Exclamation.Play();
+                    Log("Login failed: " + e.Message, Color.Red, section: processName);
                     await Task.Delay(new Random().Next(0, 3000) + 5000);
                     keyNumber--;
                     continue;
@@ -364,9 +386,10 @@ namespace Hamster_Key_Generator
                     {
                         response = await Request(clientToken, g.promoId);
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        Log("Http error", Color.Red, section: processName);
+                        SystemSounds.Exclamation.Play();
+                        Log("Http error: " + e.Message, Color.Red, section: processName);
                         continue;
                     }
 
@@ -483,6 +506,7 @@ namespace Hamster_Key_Generator
             _textBoxSocks5Port = textBoxSocks5Port;
             _textBoxHttpHost = textBoxHttpHost;
             _textBoxHttpPort = textBoxHttpPort;
+            _notifyIconMain = notifyIconMain;
         }
 
         private static Color GetColorFromText(string input)
@@ -594,6 +618,42 @@ namespace Hamster_Key_Generator
             return flurlClient;
         }
 
+        private void buttonExportKeys_Click(object sender, EventArgs e)
+        {
+            if (listBoxKeys.Items.Count > 0)
+            {
+                SaveFileDialog sf = new SaveFileDialog
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    DefaultExt = "txt",
+                    FileName = "keys(" + DateTime.Now.ToString("yy-MM-dd-HH-mm") + ").txt",
+                    Title = "Save your keys"
+                };
+                if (sf.ShowDialog() == DialogResult.OK)
+                {
+                    string[] items = new string[listBoxKeys.Items.Count];
+                    for (int i = 0; i < listBoxKeys.Items.Count; i++)
+                    {
+                        items[i] = listBoxKeys.Items[i].ToString();
+                    }
+                    File.WriteAllLines(sf.FileName, items);
+                    MessageBox.Show("Key successfully saved.", "Keys saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
 
+        private void notifyIconMain_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.Visible = !this.Visible;
+        }
+
+        private void buttonGithub_Click(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/artariya",
+                UseShellExecute = true
+            });
+        }
     }
 }

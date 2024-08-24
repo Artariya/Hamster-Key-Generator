@@ -44,10 +44,10 @@ namespace Hamster_Key_Generator
             this.label3 = new System.Windows.Forms.Label();
             this.listBoxKeys = new System.Windows.Forms.ListBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripProgressBarMain = new System.Windows.Forms.ToolStripProgressBar();
             this.labelKeys = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelRequest = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelProccess = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripProgressBarMain = new System.Windows.Forms.ToolStripProgressBar();
             this.groupBoxSettings = new System.Windows.Forms.GroupBox();
             this.checkBoxProccessRandomDelay = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -56,20 +56,27 @@ namespace Hamster_Key_Generator
             this.tabPageMain = new System.Windows.Forms.TabPage();
             this.tabPageDleyas = new System.Windows.Forms.TabPage();
             this.tabPageProxy = new System.Windows.Forms.TabPage();
-            this.radioButtonProxy1 = new System.Windows.Forms.RadioButton();
-            this.radioButtonProxy2 = new System.Windows.Forms.RadioButton();
-            this.radioButtonProxy3 = new System.Windows.Forms.RadioButton();
             this.groupBoxProxy = new System.Windows.Forms.GroupBox();
-            this.groupBoxSocks5 = new System.Windows.Forms.GroupBox();
             this.groupBoxHttp = new System.Windows.Forms.GroupBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.textBoxSocks5Host = new System.Windows.Forms.TextBox();
-            this.textBoxSocks5Port = new System.Windows.Forms.TextBox();
-            this.textBoxHttpHost = new System.Windows.Forms.TextBox();
             this.textBoxHttpPort = new System.Windows.Forms.TextBox();
+            this.textBoxHttpHost = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.groupBoxSocks5 = new System.Windows.Forms.GroupBox();
+            this.textBoxSocks5Port = new System.Windows.Forms.TextBox();
+            this.textBoxSocks5Host = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.radioButtonProxy1 = new System.Windows.Forms.RadioButton();
+            this.radioButtonProxy3 = new System.Windows.Forms.RadioButton();
+            this.radioButtonProxy2 = new System.Windows.Forms.RadioButton();
+            this.buttonExportKeys = new System.Windows.Forms.Button();
+            this.notifyIconMain = new System.Windows.Forms.NotifyIcon(this.components);
+            this.tabPageDataBase = new System.Windows.Forms.TabPage();
+            this.label9 = new System.Windows.Forms.Label();
+            this.tabPageInfo = new System.Windows.Forms.TabPage();
+            this.label10 = new System.Windows.Forms.Label();
+            this.buttonGithub = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMinimumDelay)).BeginInit();
             this.statusStrip1.SuspendLayout();
@@ -80,14 +87,16 @@ namespace Hamster_Key_Generator
             this.tabPageDleyas.SuspendLayout();
             this.tabPageProxy.SuspendLayout();
             this.groupBoxProxy.SuspendLayout();
-            this.groupBoxSocks5.SuspendLayout();
             this.groupBoxHttp.SuspendLayout();
+            this.groupBoxSocks5.SuspendLayout();
+            this.tabPageDataBase.SuspendLayout();
+            this.tabPageInfo.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonGenerate
             // 
             this.buttonGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonGenerate.Location = new System.Drawing.Point(382, 19);
+            this.buttonGenerate.Location = new System.Drawing.Point(381, 19);
             this.buttonGenerate.Name = "buttonGenerate";
             this.buttonGenerate.Size = new System.Drawing.Size(75, 23);
             this.buttonGenerate.TabIndex = 0;
@@ -103,7 +112,7 @@ namespace Hamster_Key_Generator
             this.comboBoxGames.FormattingEnabled = true;
             this.comboBoxGames.Location = new System.Drawing.Point(9, 19);
             this.comboBoxGames.Name = "comboBoxGames";
-            this.comboBoxGames.Size = new System.Drawing.Size(215, 21);
+            this.comboBoxGames.Size = new System.Drawing.Size(214, 21);
             this.comboBoxGames.TabIndex = 1;
             this.comboBoxGames.SelectedIndexChanged += new System.EventHandler(this.comboBoxGames_SelectedIndexChanged);
             // 
@@ -119,7 +128,7 @@ namespace Hamster_Key_Generator
             // numericUpDownCount
             // 
             this.numericUpDownCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDownCount.Location = new System.Drawing.Point(230, 18);
+            this.numericUpDownCount.Location = new System.Drawing.Point(229, 18);
             this.numericUpDownCount.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -138,7 +147,7 @@ namespace Hamster_Key_Generator
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(227, 2);
+            this.label2.Location = new System.Drawing.Point(226, 2);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 5;
@@ -155,7 +164,7 @@ namespace Hamster_Key_Generator
             this.richTextBoxLogs.Location = new System.Drawing.Point(6, 44);
             this.richTextBoxLogs.Name = "richTextBoxLogs";
             this.richTextBoxLogs.ReadOnly = true;
-            this.richTextBoxLogs.Size = new System.Drawing.Size(451, 244);
+            this.richTextBoxLogs.Size = new System.Drawing.Size(450, 260);
             this.richTextBoxLogs.TabIndex = 6;
             this.richTextBoxLogs.Text = "";
             this.richTextBoxLogs.WordWrap = false;
@@ -163,7 +172,7 @@ namespace Hamster_Key_Generator
             // buttonCopyAll
             // 
             this.buttonCopyAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCopyAll.Location = new System.Drawing.Point(370, 48);
+            this.buttonCopyAll.Location = new System.Drawing.Point(369, 48);
             this.buttonCopyAll.Name = "buttonCopyAll";
             this.buttonCopyAll.Size = new System.Drawing.Size(75, 23);
             this.buttonCopyAll.TabIndex = 8;
@@ -174,7 +183,7 @@ namespace Hamster_Key_Generator
             // buttonCopy
             // 
             this.buttonCopy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCopy.Location = new System.Drawing.Point(370, 19);
+            this.buttonCopy.Location = new System.Drawing.Point(369, 19);
             this.buttonCopy.Name = "buttonCopy";
             this.buttonCopy.Size = new System.Drawing.Size(75, 23);
             this.buttonCopy.TabIndex = 9;
@@ -219,7 +228,7 @@ namespace Hamster_Key_Generator
             this.listBoxKeys.FormattingEnabled = true;
             this.listBoxKeys.Location = new System.Drawing.Point(6, 19);
             this.listBoxKeys.Name = "listBoxKeys";
-            this.listBoxKeys.Size = new System.Drawing.Size(358, 82);
+            this.listBoxKeys.Size = new System.Drawing.Size(357, 82);
             this.listBoxKeys.TabIndex = 7;
             // 
             // statusStrip1
@@ -229,11 +238,16 @@ namespace Hamster_Key_Generator
             this.labelKeys,
             this.labelRequest,
             this.labelProccess});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 437);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 453);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(471, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(470, 22);
             this.statusStrip1.TabIndex = 14;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripProgressBarMain
+            // 
+            this.toolStripProgressBarMain.Name = "toolStripProgressBarMain";
+            this.toolStripProgressBarMain.Size = new System.Drawing.Size(200, 16);
             // 
             // labelKeys
             // 
@@ -253,22 +267,18 @@ namespace Hamster_Key_Generator
             this.labelProccess.Size = new System.Drawing.Size(10, 17);
             this.labelProccess.Text = " ";
             // 
-            // toolStripProgressBarMain
-            // 
-            this.toolStripProgressBarMain.Name = "toolStripProgressBarMain";
-            this.toolStripProgressBarMain.Size = new System.Drawing.Size(200, 16);
-            // 
             // groupBoxSettings
             // 
             this.groupBoxSettings.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSettings.Controls.Add(this.buttonExportKeys);
             this.groupBoxSettings.Controls.Add(this.listBoxKeys);
             this.groupBoxSettings.Controls.Add(this.buttonCopy);
             this.groupBoxSettings.Controls.Add(this.buttonCopyAll);
             this.groupBoxSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.groupBoxSettings.Location = new System.Drawing.Point(6, 294);
+            this.groupBoxSettings.Location = new System.Drawing.Point(6, 310);
             this.groupBoxSettings.Name = "groupBoxSettings";
-            this.groupBoxSettings.Size = new System.Drawing.Size(451, 111);
+            this.groupBoxSettings.Size = new System.Drawing.Size(450, 111);
             this.groupBoxSettings.TabIndex = 15;
             this.groupBoxSettings.TabStop = false;
             this.groupBoxSettings.Text = "Keys and settings";
@@ -287,7 +297,7 @@ namespace Hamster_Key_Generator
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(303, 2);
+            this.label4.Location = new System.Drawing.Point(302, 2);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(51, 13);
             this.label4.TabIndex = 17;
@@ -296,7 +306,7 @@ namespace Hamster_Key_Generator
             // numericUpDownProccess
             // 
             this.numericUpDownProccess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDownProccess.Location = new System.Drawing.Point(306, 18);
+            this.numericUpDownProccess.Location = new System.Drawing.Point(305, 18);
             this.numericUpDownProccess.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -316,11 +326,13 @@ namespace Hamster_Key_Generator
             this.tabControlMain.Controls.Add(this.tabPageMain);
             this.tabControlMain.Controls.Add(this.tabPageDleyas);
             this.tabControlMain.Controls.Add(this.tabPageProxy);
+            this.tabControlMain.Controls.Add(this.tabPageDataBase);
+            this.tabControlMain.Controls.Add(this.tabPageInfo);
             this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControlMain.Location = new System.Drawing.Point(0, 0);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(471, 437);
+            this.tabControlMain.Size = new System.Drawing.Size(470, 453);
             this.tabControlMain.TabIndex = 18;
             // 
             // tabPageMain
@@ -337,7 +349,7 @@ namespace Hamster_Key_Generator
             this.tabPageMain.Location = new System.Drawing.Point(4, 22);
             this.tabPageMain.Name = "tabPageMain";
             this.tabPageMain.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageMain.Size = new System.Drawing.Size(463, 411);
+            this.tabPageMain.Size = new System.Drawing.Size(462, 427);
             this.tabPageMain.TabIndex = 0;
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
@@ -350,7 +362,7 @@ namespace Hamster_Key_Generator
             this.tabPageDleyas.Location = new System.Drawing.Point(4, 22);
             this.tabPageDleyas.Name = "tabPageDleyas";
             this.tabPageDleyas.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageDleyas.Size = new System.Drawing.Size(463, 411);
+            this.tabPageDleyas.Size = new System.Drawing.Size(462, 427);
             this.tabPageDleyas.TabIndex = 1;
             this.tabPageDleyas.Text = "Delays";
             this.tabPageDleyas.UseVisualStyleBackColor = true;
@@ -361,10 +373,125 @@ namespace Hamster_Key_Generator
             this.tabPageProxy.Location = new System.Drawing.Point(4, 22);
             this.tabPageProxy.Name = "tabPageProxy";
             this.tabPageProxy.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageProxy.Size = new System.Drawing.Size(463, 411);
+            this.tabPageProxy.Size = new System.Drawing.Size(462, 427);
             this.tabPageProxy.TabIndex = 2;
             this.tabPageProxy.Text = "Proxy";
             this.tabPageProxy.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxProxy
+            // 
+            this.groupBoxProxy.Controls.Add(this.groupBoxHttp);
+            this.groupBoxProxy.Controls.Add(this.groupBoxSocks5);
+            this.groupBoxProxy.Controls.Add(this.radioButtonProxy1);
+            this.groupBoxProxy.Controls.Add(this.radioButtonProxy3);
+            this.groupBoxProxy.Controls.Add(this.radioButtonProxy2);
+            this.groupBoxProxy.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxProxy.Location = new System.Drawing.Point(3, 3);
+            this.groupBoxProxy.Name = "groupBoxProxy";
+            this.groupBoxProxy.Size = new System.Drawing.Size(456, 421);
+            this.groupBoxProxy.TabIndex = 3;
+            this.groupBoxProxy.TabStop = false;
+            this.groupBoxProxy.Text = "Proxy settings";
+            // 
+            // groupBoxHttp
+            // 
+            this.groupBoxHttp.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxHttp.Controls.Add(this.textBoxHttpPort);
+            this.groupBoxHttp.Controls.Add(this.textBoxHttpHost);
+            this.groupBoxHttp.Controls.Add(this.label8);
+            this.groupBoxHttp.Controls.Add(this.label7);
+            this.groupBoxHttp.Enabled = false;
+            this.groupBoxHttp.Location = new System.Drawing.Point(6, 194);
+            this.groupBoxHttp.Name = "groupBoxHttp";
+            this.groupBoxHttp.Size = new System.Drawing.Size(444, 100);
+            this.groupBoxHttp.TabIndex = 4;
+            this.groupBoxHttp.TabStop = false;
+            this.groupBoxHttp.Text = "HTTP Settings";
+            // 
+            // textBoxHttpPort
+            // 
+            this.textBoxHttpPort.Location = new System.Drawing.Point(191, 32);
+            this.textBoxHttpPort.Name = "textBoxHttpPort";
+            this.textBoxHttpPort.Size = new System.Drawing.Size(78, 20);
+            this.textBoxHttpPort.TabIndex = 3;
+            this.textBoxHttpPort.Text = "80";
+            // 
+            // textBoxHttpHost
+            // 
+            this.textBoxHttpHost.Location = new System.Drawing.Point(9, 32);
+            this.textBoxHttpHost.Name = "textBoxHttpHost";
+            this.textBoxHttpHost.Size = new System.Drawing.Size(176, 20);
+            this.textBoxHttpHost.TabIndex = 2;
+            this.textBoxHttpHost.Text = "127.0.0.1";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(188, 16);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(26, 13);
+            this.label8.TabIndex = 1;
+            this.label8.Text = "Port";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 16);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(29, 13);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "Host";
+            // 
+            // groupBoxSocks5
+            // 
+            this.groupBoxSocks5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxSocks5.Controls.Add(this.textBoxSocks5Port);
+            this.groupBoxSocks5.Controls.Add(this.textBoxSocks5Host);
+            this.groupBoxSocks5.Controls.Add(this.label6);
+            this.groupBoxSocks5.Controls.Add(this.label5);
+            this.groupBoxSocks5.Enabled = false;
+            this.groupBoxSocks5.Location = new System.Drawing.Point(6, 65);
+            this.groupBoxSocks5.Name = "groupBoxSocks5";
+            this.groupBoxSocks5.Size = new System.Drawing.Size(444, 100);
+            this.groupBoxSocks5.TabIndex = 3;
+            this.groupBoxSocks5.TabStop = false;
+            this.groupBoxSocks5.Text = "Socks5 Settings";
+            // 
+            // textBoxSocks5Port
+            // 
+            this.textBoxSocks5Port.Location = new System.Drawing.Point(191, 32);
+            this.textBoxSocks5Port.Name = "textBoxSocks5Port";
+            this.textBoxSocks5Port.Size = new System.Drawing.Size(78, 20);
+            this.textBoxSocks5Port.TabIndex = 3;
+            this.textBoxSocks5Port.Text = "1080";
+            // 
+            // textBoxSocks5Host
+            // 
+            this.textBoxSocks5Host.Location = new System.Drawing.Point(9, 32);
+            this.textBoxSocks5Host.Name = "textBoxSocks5Host";
+            this.textBoxSocks5Host.Size = new System.Drawing.Size(176, 20);
+            this.textBoxSocks5Host.TabIndex = 2;
+            this.textBoxSocks5Host.Text = "127.0.0.1";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(188, 16);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(26, 13);
+            this.label6.TabIndex = 1;
+            this.label6.Text = "Port";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(6, 16);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(29, 13);
+            this.label5.TabIndex = 0;
+            this.label5.Text = "Host";
             // 
             // radioButtonProxy1
             // 
@@ -378,17 +505,6 @@ namespace Hamster_Key_Generator
             this.radioButtonProxy1.Text = "No proxy";
             this.radioButtonProxy1.UseVisualStyleBackColor = true;
             // 
-            // radioButtonProxy2
-            // 
-            this.radioButtonProxy2.AutoSize = true;
-            this.radioButtonProxy2.Location = new System.Drawing.Point(6, 42);
-            this.radioButtonProxy2.Name = "radioButtonProxy2";
-            this.radioButtonProxy2.Size = new System.Drawing.Size(61, 17);
-            this.radioButtonProxy2.TabIndex = 1;
-            this.radioButtonProxy2.Text = "Socks5";
-            this.radioButtonProxy2.UseVisualStyleBackColor = true;
-            this.radioButtonProxy2.CheckedChanged += new System.EventHandler(this.radioButtonProxy2_CheckedChanged);
-            // 
             // radioButtonProxy3
             // 
             this.radioButtonProxy3.AutoSize = true;
@@ -400,126 +516,94 @@ namespace Hamster_Key_Generator
             this.radioButtonProxy3.UseVisualStyleBackColor = true;
             this.radioButtonProxy3.CheckedChanged += new System.EventHandler(this.radioButtonProxy3_CheckedChanged);
             // 
-            // groupBoxProxy
+            // radioButtonProxy2
             // 
-            this.groupBoxProxy.Controls.Add(this.groupBoxHttp);
-            this.groupBoxProxy.Controls.Add(this.groupBoxSocks5);
-            this.groupBoxProxy.Controls.Add(this.radioButtonProxy1);
-            this.groupBoxProxy.Controls.Add(this.radioButtonProxy3);
-            this.groupBoxProxy.Controls.Add(this.radioButtonProxy2);
-            this.groupBoxProxy.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxProxy.Location = new System.Drawing.Point(3, 3);
-            this.groupBoxProxy.Name = "groupBoxProxy";
-            this.groupBoxProxy.Size = new System.Drawing.Size(457, 405);
-            this.groupBoxProxy.TabIndex = 3;
-            this.groupBoxProxy.TabStop = false;
-            this.groupBoxProxy.Text = "Proxy settings";
+            this.radioButtonProxy2.AutoSize = true;
+            this.radioButtonProxy2.Location = new System.Drawing.Point(6, 42);
+            this.radioButtonProxy2.Name = "radioButtonProxy2";
+            this.radioButtonProxy2.Size = new System.Drawing.Size(61, 17);
+            this.radioButtonProxy2.TabIndex = 1;
+            this.radioButtonProxy2.Text = "Socks5";
+            this.radioButtonProxy2.UseVisualStyleBackColor = true;
+            this.radioButtonProxy2.CheckedChanged += new System.EventHandler(this.radioButtonProxy2_CheckedChanged);
             // 
-            // groupBoxSocks5
+            // buttonExportKeys
             // 
-            this.groupBoxSocks5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxSocks5.Controls.Add(this.textBoxSocks5Port);
-            this.groupBoxSocks5.Controls.Add(this.textBoxSocks5Host);
-            this.groupBoxSocks5.Controls.Add(this.label6);
-            this.groupBoxSocks5.Controls.Add(this.label5);
-            this.groupBoxSocks5.Enabled = false;
-            this.groupBoxSocks5.Location = new System.Drawing.Point(6, 65);
-            this.groupBoxSocks5.Name = "groupBoxSocks5";
-            this.groupBoxSocks5.Size = new System.Drawing.Size(445, 100);
-            this.groupBoxSocks5.TabIndex = 3;
-            this.groupBoxSocks5.TabStop = false;
-            this.groupBoxSocks5.Text = "Socks5 Settings";
+            this.buttonExportKeys.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonExportKeys.Location = new System.Drawing.Point(369, 77);
+            this.buttonExportKeys.Name = "buttonExportKeys";
+            this.buttonExportKeys.Size = new System.Drawing.Size(75, 23);
+            this.buttonExportKeys.TabIndex = 10;
+            this.buttonExportKeys.Text = "Export";
+            this.buttonExportKeys.UseVisualStyleBackColor = true;
+            this.buttonExportKeys.Click += new System.EventHandler(this.buttonExportKeys_Click);
             // 
-            // groupBoxHttp
+            // notifyIconMain
             // 
-            this.groupBoxHttp.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxHttp.Controls.Add(this.textBoxHttpPort);
-            this.groupBoxHttp.Controls.Add(this.textBoxHttpHost);
-            this.groupBoxHttp.Controls.Add(this.label8);
-            this.groupBoxHttp.Controls.Add(this.label7);
-            this.groupBoxHttp.Enabled = false;
-            this.groupBoxHttp.Location = new System.Drawing.Point(6, 194);
-            this.groupBoxHttp.Name = "groupBoxHttp";
-            this.groupBoxHttp.Size = new System.Drawing.Size(445, 100);
-            this.groupBoxHttp.TabIndex = 4;
-            this.groupBoxHttp.TabStop = false;
-            this.groupBoxHttp.Text = "HTTP Settings";
+            this.notifyIconMain.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIconMain.Icon")));
+            this.notifyIconMain.Text = "Hamster Key Generator";
+            this.notifyIconMain.Visible = true;
+            this.notifyIconMain.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIconMain_MouseDoubleClick);
             // 
-            // label5
+            // tabPageDataBase
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 16);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(29, 13);
-            this.label5.TabIndex = 0;
-            this.label5.Text = "Host";
+            this.tabPageDataBase.Controls.Add(this.label9);
+            this.tabPageDataBase.Location = new System.Drawing.Point(4, 22);
+            this.tabPageDataBase.Name = "tabPageDataBase";
+            this.tabPageDataBase.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageDataBase.Size = new System.Drawing.Size(462, 427);
+            this.tabPageDataBase.TabIndex = 3;
+            this.tabPageDataBase.Text = "DataBase";
+            this.tabPageDataBase.UseVisualStyleBackColor = true;
             // 
-            // label6
+            // label9
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(188, 16);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(26, 13);
-            this.label6.TabIndex = 1;
-            this.label6.Text = "Port";
+            this.label9.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label9.Font = new System.Drawing.Font("Consolas", 27.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.Location = new System.Drawing.Point(3, 3);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(456, 421);
+            this.label9.TabIndex = 0;
+            this.label9.Text = "Coming soon";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // label7
+            // tabPageInfo
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(6, 16);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(29, 13);
-            this.label7.TabIndex = 0;
-            this.label7.Text = "Host";
+            this.tabPageInfo.Controls.Add(this.buttonGithub);
+            this.tabPageInfo.Controls.Add(this.label10);
+            this.tabPageInfo.Location = new System.Drawing.Point(4, 22);
+            this.tabPageInfo.Name = "tabPageInfo";
+            this.tabPageInfo.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageInfo.Size = new System.Drawing.Size(462, 427);
+            this.tabPageInfo.TabIndex = 4;
+            this.tabPageInfo.Text = "Info";
+            this.tabPageInfo.UseVisualStyleBackColor = true;
             // 
-            // label8
+            // label10
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(188, 16);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(26, 13);
-            this.label8.TabIndex = 1;
-            this.label8.Text = "Port";
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.Location = new System.Drawing.Point(6, 3);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(144, 20);
+            this.label10.TabIndex = 0;
+            this.label10.Text = "Created by Artaryia";
             // 
-            // textBoxSocks5Host
+            // buttonGithub
             // 
-            this.textBoxSocks5Host.Location = new System.Drawing.Point(9, 32);
-            this.textBoxSocks5Host.Name = "textBoxSocks5Host";
-            this.textBoxSocks5Host.Size = new System.Drawing.Size(176, 20);
-            this.textBoxSocks5Host.TabIndex = 2;
-            this.textBoxSocks5Host.Text = "127.0.0.1";
-            // 
-            // textBoxSocks5Port
-            // 
-            this.textBoxSocks5Port.Location = new System.Drawing.Point(191, 32);
-            this.textBoxSocks5Port.Name = "textBoxSocks5Port";
-            this.textBoxSocks5Port.Size = new System.Drawing.Size(78, 20);
-            this.textBoxSocks5Port.TabIndex = 3;
-            this.textBoxSocks5Port.Text = "1080";
-            // 
-            // textBoxHttpHost
-            // 
-            this.textBoxHttpHost.Location = new System.Drawing.Point(9, 32);
-            this.textBoxHttpHost.Name = "textBoxHttpHost";
-            this.textBoxHttpHost.Size = new System.Drawing.Size(176, 20);
-            this.textBoxHttpHost.TabIndex = 2;
-            this.textBoxHttpHost.Text = "127.0.0.1";
-            // 
-            // textBoxHttpPort
-            // 
-            this.textBoxHttpPort.Location = new System.Drawing.Point(191, 32);
-            this.textBoxHttpPort.Name = "textBoxHttpPort";
-            this.textBoxHttpPort.Size = new System.Drawing.Size(78, 20);
-            this.textBoxHttpPort.TabIndex = 3;
-            this.textBoxHttpPort.Text = "80";
+            this.buttonGithub.Location = new System.Drawing.Point(10, 26);
+            this.buttonGithub.Name = "buttonGithub";
+            this.buttonGithub.Size = new System.Drawing.Size(75, 23);
+            this.buttonGithub.TabIndex = 1;
+            this.buttonGithub.Text = "Github";
+            this.buttonGithub.UseVisualStyleBackColor = true;
+            this.buttonGithub.Click += new System.EventHandler(this.buttonGithub_Click);
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(471, 459);
+            this.ClientSize = new System.Drawing.Size(470, 475);
             this.Controls.Add(this.tabControlMain);
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -541,10 +625,13 @@ namespace Hamster_Key_Generator
             this.tabPageProxy.ResumeLayout(false);
             this.groupBoxProxy.ResumeLayout(false);
             this.groupBoxProxy.PerformLayout();
-            this.groupBoxSocks5.ResumeLayout(false);
-            this.groupBoxSocks5.PerformLayout();
             this.groupBoxHttp.ResumeLayout(false);
             this.groupBoxHttp.PerformLayout();
+            this.groupBoxSocks5.ResumeLayout(false);
+            this.groupBoxSocks5.PerformLayout();
+            this.tabPageDataBase.ResumeLayout(false);
+            this.tabPageInfo.ResumeLayout(false);
+            this.tabPageInfo.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -594,6 +681,13 @@ namespace Hamster_Key_Generator
         private System.Windows.Forms.RadioButton radioButtonProxy1;
         private System.Windows.Forms.RadioButton radioButtonProxy3;
         private System.Windows.Forms.RadioButton radioButtonProxy2;
+        private System.Windows.Forms.Button buttonExportKeys;
+        private System.Windows.Forms.NotifyIcon notifyIconMain;
+        private System.Windows.Forms.TabPage tabPageDataBase;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TabPage tabPageInfo;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Button buttonGithub;
     }
 }
 
