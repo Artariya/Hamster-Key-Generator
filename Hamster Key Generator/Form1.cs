@@ -3,13 +3,11 @@ using System.Windows.Forms;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 using Newtonsoft.Json;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
-using Flurl;
 using Flurl.Http;
 using System.Data.SQLite;
 using Dapper;
@@ -19,22 +17,24 @@ namespace Hamster_Key_Generator
 {
     public partial class FormMain : Form
     {
-        Game[] Games;
-        static int progressTime = 0;
-        static ToolStripLabel LabelKeys;
-        static ToolStripLabel LabelRequest;
-        static NumericUpDown DelayNumericInput;
-        static ListBox ListBoxKeys;
-        static ProgressBar ProgressBarMain;
-        static RichTextBox RichTextBoxLogs;
+        private readonly Game[] _games;
+        private static int _progressTime;
+        private static ToolStripLabel _labelKeys;
+        private static ToolStripLabel _labelRequest;
+        private static NumericUpDown _delayNumericInput;
+        private static ListBox _listBoxKeys;
+        private static ProgressBar _progressBarMain;
+        private static RichTextBox _richTextBoxLogs;
 
 
         public FormMain()
         {
+            _progressTime = 0;
+
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "games.json");
             string jsonContent = File.ReadAllText(filePath);
 
-            Games = JsonConvert.DeserializeObject<Game[]>(jsonContent);
+            _games = JsonConvert.DeserializeObject<Game[]>(jsonContent);
 
             using (var connection = new SQLiteConnection("Data Source=keys.db;Version=3;"))
             {
@@ -57,14 +57,15 @@ namespace Hamster_Key_Generator
 
         private async void buttonGenerate_Click(object sender, EventArgs e)
         {
-            if (comboBoxGames.SelectedIndex<0)
+            if (comboBoxGames.SelectedIndex < 0)
             {
                 Log("Please select a game", Color.Orange);
                 return;
             }
+
             Game selectedGame = null;
             // check exists game
-            foreach (Game item in Games)
+            foreach (Game item in _games)
             {
                 if (item.name == comboBoxGames.Text)
                 {
@@ -80,7 +81,7 @@ namespace Hamster_Key_Generator
 
             buttonGenerate.Enabled = false;
             int countProcess = (int)numericUpDownProccess.Value;
-            labelProccess.Text = "Processes: " + countProcess;
+            labelProccess.Text = $@"Processes: {countProcess}";
             Task[] processes = new Task[countProcess];
             for (int i = 0; i < countProcess; i++)
             {
@@ -88,6 +89,7 @@ namespace Hamster_Key_Generator
                 {
                     await Task.Delay(new Random().Next(0, 5000));
                 }
+
                 processes[i] = Process(selectedGame, (int)numericUpDownCount.Value, "Proc_" + (i + 1));
             }
 
@@ -96,7 +98,7 @@ namespace Hamster_Key_Generator
             buttonGenerate.Enabled = true;
         }
 
-        public static async Task<string> Login(string token)
+        private static async Task<string> Login(string token)
         {
             var url = "https://api.gamepromo.io/promo/login-client";
 
@@ -120,81 +122,69 @@ namespace Hamster_Key_Generator
             var response = await client.SendAsync(requestHeaders);
             string responseBody = await response.Content.ReadAsStringAsync();
             JObject jsonObject = JObject.Parse(responseBody);
-            return jsonObject["clientToken"].ToString();
+            return jsonObject["clientToken"]?.ToString();
         }
 
-        public static async Task<int> Request(string clientToken, string promoId)
+        private static async Task<int> Request(string clientToken, string promoId)
         {
             var url = "https://api.gamepromo.io/promo/register-event";
 
             var body = new
             {
-                promoId = promoId,
+                promoId,
                 eventId = Guid.NewGuid().ToString(),
                 eventOrigin = "undefined"
             };
 
-            try
-            {
-                var response = await url
-                    .WithOAuthBearerToken(clientToken)
-                    .AllowHttpStatus("4xx")
-                    .PostJsonAsync(body).ReceiveString();
+            var response = await url
+                .WithOAuthBearerToken(clientToken)
+                .AllowHttpStatus("4xx")
+                .PostJsonAsync(body).ReceiveString();
 
-                var jsonObject = JObject.Parse(response);
+            var jsonObject = JObject.Parse(response);
 
-                if (jsonObject["hasCode"] != null)
-                {
-                    return jsonObject.Value<bool>("hasCode") ? 200 : 1;
-                }
-                else if (jsonObject["error_code"] != null)
-                {
-                    switch (jsonObject["error_code"].ToString().ToLower())
-                    {
-                        case "unauthorized":
-                            return 2;
-                        case "toomanyregister":
-                            return 3;
-                    }
-                }
-                return 400;
-            }
-            catch
+            if (jsonObject["hasCode"] != null)
             {
-                throw;
+                return jsonObject.Value<bool>("hasCode") ? 200 : 1;
             }
+            else if (jsonObject["error_code"] != null)
+            {
+                switch (jsonObject["error_code"].ToString().ToLower())
+                {
+                    case "unauthorized":
+                        return 2;
+                    case "toomanyregister":
+                        return 3;
+                }
+            }
+
+            return 400;
         }
 
-        public static async Task<string> GenerateKey(string clientToken, string promoId)
+        private static async Task<string> GenerateKey(string clientToken, string promoId)
         {
             var url = "https://api.gamepromo.io/promo/create-code";
 
             var body = new
             {
-                promoId = promoId
+                promoId
             };
 
-            try
-            {
-                var response = await url
-                        .WithOAuthBearerToken(clientToken)
-                        .AllowHttpStatus("4xx")
-                        .PostJsonAsync(body).ReceiveString();
+            var response = await url
+                .WithOAuthBearerToken(clientToken)
+                .AllowHttpStatus("4xx")
+                .PostJsonAsync(body).ReceiveString();
 
-                JObject jsonObject = JObject.Parse(response);
-                if (jsonObject["promoCode"] != null)
-                {
-                    return jsonObject["promoCode"].ToString();
-                }
-                return null;
-            }
-            catch
+            JObject jsonObject = JObject.Parse(response);
+            if (jsonObject["promoCode"] != null)
             {
-                throw;
+                return jsonObject["promoCode"].ToString();
             }
+
+            return null;
         }
 
-        public static string GenerateClientId()
+        private static string GenerateClientId()
         {
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Random random = new Random();
@@ -204,41 +194,36 @@ namespace Hamster_Key_Generator
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            refreshStatics();
+            RefreshStatics();
             timer1.Start();
             comboBoxGames.Items.Clear();
-            for (int i = 0; i < Games.Count(); i++)
+            for (int i = 0; i < _games.Count(); i++)
             {
-                comboBoxGames.Items.Add(Games[i].name);
+                comboBoxGames.Items.Add(_games[i].name);
             }
         }
 
-        static private void Log(string text, Color color = default(Color), string section = null)
+        private static void Log(string text, Color color = default(Color), string section = null)
         {
             DateTime now = DateTime.Now;
             string formattedTime = now.ToString("HH:mm:ss");
-            RichTextBoxLogs.AppendText("[" + formattedTime + "]");
-            Color originalColor = RichTextBoxLogs.SelectionColor;
+            _richTextBoxLogs.AppendText("[" + formattedTime + "]");
+            Color originalColor = _richTextBoxLogs.SelectionColor;
             if (section != null)
             {
-                RichTextBoxLogs.AppendText("(");
-                RichTextBoxLogs.SelectionColor = GetColorFromText(section);
-                RichTextBoxLogs.AppendText(section);
-                RichTextBoxLogs.SelectionColor = originalColor;
-                RichTextBoxLogs.AppendText(")");
+                _richTextBoxLogs.AppendText("(");
+                _richTextBoxLogs.SelectionColor = GetColorFromText(section);
+                _richTextBoxLogs.AppendText(section);
+                _richTextBoxLogs.SelectionColor = originalColor;
+                _richTextBoxLogs.AppendText(")");
             }
-            RichTextBoxLogs.AppendText(" ");
-            if (color.IsKnownColor)
-            {
-                RichTextBoxLogs.SelectionColor = color;
-            }
-            else
-            {
-                RichTextBoxLogs.SelectionColor = Color.White;
-            }
-            RichTextBoxLogs.AppendText(text + "\n");
-            RichTextBoxLogs.SelectionColor = originalColor;
-            RichTextBoxLogs.ScrollToCaret();
+
+            _richTextBoxLogs.AppendText(" ");
+            _richTextBoxLogs.SelectionColor = color.IsKnownColor ? color : Color.White;
+
+            _richTextBoxLogs.AppendText(text + "\n");
+            _richTextBoxLogs.SelectionColor = originalColor;
+            _richTextBoxLogs.ScrollToCaret();
         }
 
         private void buttonCopy_Click(object sender, EventArgs e)
@@ -246,7 +231,7 @@ namespace Hamster_Key_Generator
             if (listBoxKeys.SelectedItem != null)
             {
                 Clipboard.SetText(listBoxKeys.SelectedItem.ToString());
-                Log("Item copied to clipboard: " + listBoxKeys.SelectedItem.ToString(), Color.Yellow);
+                Log("Item copied to clipboard: " + listBoxKeys.SelectedItem, Color.Yellow);
             }
             else
             {
@@ -261,15 +246,16 @@ namespace Hamster_Key_Generator
             {
                 allItems.AppendLine(item.ToString());
             }
+
             Clipboard.SetText(allItems.ToString());
             Log("All items copied to clipboard.", Color.Yellow);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (progressTime > 0)
+            if (_progressTime > 0)
             {
-                int value = 100 / (progressTime / timer1.Interval);
+                int value = 100 / (_progressTime / timer1.Interval);
                 if (progressBarMain.Value + value < 100)
                 {
                     progressBarMain.Value += value;
@@ -277,7 +263,7 @@ namespace Hamster_Key_Generator
             }
         }
 
-        static int AddKeyToDatabase(string key, string platform)
+        private static int AddKeyToDatabase(string key, string platform)
         {
             try
             {
@@ -290,7 +276,6 @@ namespace Hamster_Key_Generator
 
                     if (keyExists > 0)
                     {
-
                         return 100;
                     }
 
@@ -307,12 +292,12 @@ namespace Hamster_Key_Generator
             }
         }
 
-        static private async Task Process(Game g, int keyCount, string processName)
+        private static async Task Process(Game g, int keyCount, string processName)
         {
             for (int keyNumber = 1; keyNumber <= keyCount; keyNumber++)
             {
                 Log("Start generating key " + keyNumber, section: processName);
-                string clientToken = null;
+                string clientToken;
                 try
                 {
                     clientToken = await Login(g.appToken);
@@ -336,17 +321,19 @@ namespace Hamster_Key_Generator
                 while (response != 200)
                 {
                     int delays = g.eventsDelay + rand.Next(-2000, 2000) + surplusDelay;
-                    if (delays < DelayNumericInput.Value)
+                    if (delays < _delayNumericInput.Value)
                     {
-                        delays = (int)DelayNumericInput.Value + rand.Next(0, 1000);
+                        delays = (int)_delayNumericInput.Value + rand.Next(0, 1000);
                     }
-                    if (ProgressBarMain.Value == 0 || ProgressBarMain.Value == 100)
+
+                    if (_progressBarMain.Value == 0 || _progressBarMain.Value == 100)
                     {
-                        ProgressBarMain.Value = 0;
-                        progressTime = delays;
+                        _progressBarMain.Value = 0;
+                        _progressTime = delays;
                     }
+
                     Log("Request " + attempts + " (" + delays.ToString("N0") + ") ...", section: processName);
-                    LabelRequest.Text = "Last request: " + attempts;
+                    _labelRequest.Text = $@"Last request: {attempts}";
                     attempts++;
                     await Task.Delay(delays);
                     try
@@ -358,9 +345,9 @@ namespace Hamster_Key_Generator
                         Log("Http error", Color.Red, section: processName);
                         continue;
                     }
+
                     if (response == 2)
                     {
-                        repeatedSuccessCount = 0;
                         Log("Session for client not valid", Color.Red, section: processName);
                         restartClient = true;
                         break;
@@ -386,8 +373,10 @@ namespace Hamster_Key_Generator
                             repeatedSuccessCount = 0;
                         }
                     }
-                    ProgressBarMain.Value = 100;
+
+                    _progressBarMain.Value = 100;
                 }
+
                 if (restartClient)
                 {
                     keyNumber--;
@@ -413,6 +402,7 @@ namespace Hamster_Key_Generator
                     keyNumber--;
                     continue;
                 }
+
                 switch (AddKeyToDatabase(key, g.platform))
                 {
                     case 0:
@@ -422,12 +412,14 @@ namespace Hamster_Key_Generator
                         Log("Key exists!", Color.Pink, section: processName);
                         break;
                 }
-                ListBoxKeys.Items.Add(key);
-                ListBoxKeys.TopIndex = ListBoxKeys.Items.Count - 1;
-                LabelKeys.Text = "Keys: " + ListBoxKeys.Items.Count;
+
+                _listBoxKeys.Items.Add(key);
+                _listBoxKeys.TopIndex = _listBoxKeys.Items.Count - 1;
+                _labelKeys.Text = $@"Keys: " + _listBoxKeys.Items.Count;
 
                 Log("Key successfully generated: " + key, Color.LimeGreen, section: processName);
             }
+
             Log("Process finished", Color.Lime, section: processName);
         }
 
@@ -435,33 +427,34 @@ namespace Hamster_Key_Generator
         {
             Game selectedGame = null;
             // check exists game
-            foreach (Game item in Games)
+            foreach (Game item in _games)
             {
                 if (item.name == comboBoxGames.Text)
                 {
                     selectedGame = item;
                 }
             }
+
             if (selectedGame == null)
             {
                 return;
             }
 
             numericUpDownMinimumDelay.Value = selectedGame.eventsDelay;
-            refreshStatics();
+            RefreshStatics();
         }
 
-        private void refreshStatics()
+        private void RefreshStatics()
         {
-            LabelKeys = labelKeys;
-            LabelRequest = labelRequest;
-            DelayNumericInput = numericUpDownMinimumDelay;
-            ListBoxKeys = listBoxKeys;
-            ProgressBarMain = progressBarMain;
-            RichTextBoxLogs = richTextBoxLogs;
+            _labelKeys = labelKeys;
+            _labelRequest = labelRequest;
+            _delayNumericInput = numericUpDownMinimumDelay;
+            _listBoxKeys = listBoxKeys;
+            _progressBarMain = progressBarMain;
+            _richTextBoxLogs = richTextBoxLogs;
         }
 
-        public static Color GetColorFromText(string input)
+        private static Color GetColorFromText(string input)
         {
             using (var sha256 = SHA256.Create())
             {
@@ -472,7 +465,7 @@ namespace Hamster_Key_Generator
             }
         }
 
-        public static Color HslToRgb(double h, double s, double l)
+        private static Color HslToRgb(double h, double s, double l)
         {
             double c = (1.0 - Math.Abs(2.0 * l - 1.0)) * s;
             double x = c * (1.0 - Math.Abs((h / 60.0) % 2.0 - 1.0));
@@ -481,32 +474,42 @@ namespace Hamster_Key_Generator
             double r, g, b;
             if (h < 60)
             {
-                r = c; g = x; b = 0;
+                r = c;
+                g = x;
+                b = 0;
             }
             else if (h < 120)
             {
-                r = x; g = c; b = 0;
+                r = x;
+                g = c;
+                b = 0;
             }
             else if (h < 180)
             {
-                r = 0; g = c; b = x;
+                r = 0;
+                g = c;
+                b = x;
             }
             else if (h < 240)
             {
-                r = 0; g = x; b = c;
+                r = 0;
+                g = x;
+                b = c;
             }
             else if (h < 300)
             {
-                r = x; g = 0; b = c;
+                r = x;
+                g = 0;
+                b = c;
             }
             else
             {
-                r = c; g = 0; b = x;
+                r = c;
+                g = 0;
+                b = x;
             }
-            int R = (int)((r + m) * 255);
-            int G = (int)((g + m) * 255);
-            int B = (int)((b + m) * 255);
-            return Color.FromArgb(R, G, B);
+
+            return Color.FromArgb((int)((r + m) * 255), (int)((g + m) * 255), (int)((b + m) * 255));
         }
     }
 }
