@@ -12,6 +12,8 @@ using Flurl.Http;
 using System.Data.SQLite;
 using Dapper;
 using System.Security.Cryptography;
+using System.Net;
+using MihaZupan;
 
 namespace Hamster_Key_Generator
 {
@@ -23,8 +25,15 @@ namespace Hamster_Key_Generator
         private static ToolStripLabel _labelRequest;
         private static NumericUpDown _delayNumericInput;
         private static ListBox _listBoxKeys;
-        private static ProgressBar _progressBarMain;
+        private static ToolStripProgressBar _progressBarMain;
         private static RichTextBox _richTextBoxLogs;
+        private static RadioButton _radioNoProxy;
+        private static RadioButton _radioSocks5;
+        private static RadioButton _radioHttp;
+        private static TextBox _textBoxSocks5Host;
+        private static TextBox _textBoxSocks5Port;
+        private static TextBox _textBoxHttpHost;
+        private static TextBox _textBoxHttpPort;
 
 
         public FormMain()
@@ -102,11 +111,6 @@ namespace Hamster_Key_Generator
         {
             var url = "https://api.gamepromo.io/promo/login-client";
 
-            var requestHeaders = new HttpRequestMessage(HttpMethod.Post, url);
-            // headers
-            /*requestHeaders.Headers.Add("Content-Type", "application/json");*/
-
-            // body
             var body = new
             {
                 appToken = token,
@@ -114,14 +118,12 @@ namespace Hamster_Key_Generator
                 clientOrigin = "deviceid"
             };
 
-            var jsonBody = JsonConvert.SerializeObject(body);
-            requestHeaders.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var response = await GetFlurlClient()
+                .Request(url)
+                .AllowHttpStatus("4xx")
+                .PostJsonAsync(body).ReceiveString();
 
-            HttpClient client = new HttpClient();
-
-            var response = await client.SendAsync(requestHeaders);
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JObject jsonObject = JObject.Parse(responseBody);
+            JObject jsonObject = JObject.Parse(response);
             return jsonObject["clientToken"]?.ToString();
         }
 
@@ -136,7 +138,8 @@ namespace Hamster_Key_Generator
                 eventOrigin = "undefined"
             };
 
-            var response = await url
+            var response = await GetFlurlClient()
+                .Request(url)
                 .WithOAuthBearerToken(clientToken)
                 .AllowHttpStatus("4xx")
                 .PostJsonAsync(body).ReceiveString();
@@ -170,7 +173,8 @@ namespace Hamster_Key_Generator
                 promoId
             };
 
-            var response = await url
+            var response = await GetFlurlClient()
+                .Request(url)
                 .WithOAuthBearerToken(clientToken)
                 .AllowHttpStatus("4xx")
                 .PostJsonAsync(body).ReceiveString();
@@ -201,6 +205,26 @@ namespace Hamster_Key_Generator
             {
                 comboBoxGames.Items.Add(_games[i].name);
             }
+            // Load Settings
+            // Proxy Settings
+            textBoxSocks5Host.Text = IniData.ReadData("proxy", "socks5_host", "127.0.0.1");
+            textBoxSocks5Port.Text = IniData.ReadData("proxy", "socks5_port", "1080");
+            textBoxHttpHost.Text = IniData.ReadData("proxy", "http_host", "127.0.0.1");
+            textBoxHttpPort.Text = IniData.ReadData("proxy", "http_port", "80");
+            switch (IniData.ReadData("proxy", "type"))
+            {
+                case "socks5":
+                    radioButtonProxy2.Checked = true;
+                    break;
+                case "http":
+                    radioButtonProxy3.Checked = true;
+                    break;
+                default:
+                    radioButtonProxy1.Checked = true;
+                    break;
+            }
+            // Delay Settings
+            checkBoxProccessRandomDelay.Checked = IniData.ReadData("delay", "random_proccess") == "yes";
         }
 
         private static void Log(string text, Color color = default(Color), string section = null)
@@ -256,9 +280,9 @@ namespace Hamster_Key_Generator
             if (_progressTime > 0)
             {
                 int value = 100 / (_progressTime / timer1.Interval);
-                if (progressBarMain.Value + value < 100)
+                if (toolStripProgressBarMain.Value + value < 100)
                 {
-                    progressBarMain.Value += value;
+                    toolStripProgressBarMain.Value += value;
                 }
             }
         }
@@ -287,7 +311,7 @@ namespace Hamster_Key_Generator
             }
             catch (Exception ex)
             {
-                Log("Error: " + ex.Message, Color.Red);
+                Log("Error: " + ex.Message, Color.Red, "DataBase");
                 return 0;
             }
         }
@@ -450,8 +474,15 @@ namespace Hamster_Key_Generator
             _labelRequest = labelRequest;
             _delayNumericInput = numericUpDownMinimumDelay;
             _listBoxKeys = listBoxKeys;
-            _progressBarMain = progressBarMain;
+            _progressBarMain = toolStripProgressBarMain;
             _richTextBoxLogs = richTextBoxLogs;
+            _radioNoProxy = radioButtonProxy1;
+            _radioSocks5 = radioButtonProxy2;
+            _radioHttp = radioButtonProxy3;
+            _textBoxSocks5Host = textBoxSocks5Host;
+            _textBoxSocks5Port = textBoxSocks5Port;
+            _textBoxHttpHost = textBoxHttpHost;
+            _textBoxHttpPort = textBoxHttpPort;
         }
 
         private static Color GetColorFromText(string input)
@@ -511,5 +542,58 @@ namespace Hamster_Key_Generator
 
             return Color.FromArgb((int)((r + m) * 255), (int)((g + m) * 255), (int)((b + m) * 255));
         }
+
+        private void radioButtonProxy2_CheckedChanged(object sender, EventArgs e)
+        {
+            groupBoxSocks5.Enabled = radioButtonProxy2.Checked;
+        }
+
+        private void radioButtonProxy3_CheckedChanged(object sender, EventArgs e)
+        {
+            groupBoxHttp.Enabled = radioButtonProxy3.Checked;
+        }
+
+        private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Save Setting
+            // Proxt Settings
+            IniData.WriteData("proxy", "socks5_host", textBoxSocks5Host.Text);
+            IniData.WriteData("proxy", "socks5_port", textBoxSocks5Port.Text);
+            IniData.WriteData("proxy", "http_host", textBoxHttpHost.Text);
+            IniData.WriteData("proxy", "http_port", textBoxHttpPort.Text);
+            string proxyType = "no-proxy";
+            if (radioButtonProxy2.Checked)
+            {
+                proxyType = "socks5";
+            }
+            else if (radioButtonProxy3.Checked)
+            {
+                proxyType = "http";
+            }
+            IniData.WriteData("proxy", "type", proxyType);
+            // Delay Settings
+            IniData.WriteData("delay", "random_proccess", checkBoxProccessRandomDelay.Checked ? "yes" : "no");
+        }
+
+        private static IFlurlClient GetFlurlClient()
+        {
+            var httpClientHandler = new HttpClientHandler { };
+            if (_radioSocks5.Checked)
+            {
+                httpClientHandler.Proxy = new HttpToSocks5Proxy(_textBoxSocks5Host.Text, int.Parse(_textBoxSocks5Port.Text)); ;
+                httpClientHandler.UseProxy = true;
+            }
+            else if (_radioHttp.Checked)
+            {
+                string proxyUri = @"http://" + _textBoxHttpHost.Text + ":" + _textBoxHttpPort.Text;
+                httpClientHandler.Proxy = new WebProxy(proxyUri);
+                httpClientHandler.UseProxy = true;
+            }
+            var httpClient = new HttpClient(httpClientHandler);
+            var flurlClient = new FlurlClient(httpClient);
+            return flurlClient;
+        }
+
+
     }
 }
