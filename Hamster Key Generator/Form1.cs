@@ -30,13 +30,11 @@ namespace Hamster_Key_Generator
         private static ToolStripProgressBar _progressBarMain;
         private static RichTextBox _richTextBoxLogs;
         private static RadioButton _radioNoProxy;
-        private static RadioButton _radioSocks5;
-        private static RadioButton _radioHttp;
-        private static TextBox _textBoxSocks5Host;
-        private static TextBox _textBoxSocks5Port;
-        private static TextBox _textBoxHttpHost;
-        private static TextBox _textBoxHttpPort;
+        private static RadioButton _radioAutoProxy;
         private static NotifyIcon _notifyIconMain;
+        private static ListBox _listBoxProxies;
+        private static string _lastProxy;
+        private static string _selectedProxy;
 
 
         public FormMain()
@@ -92,6 +90,10 @@ namespace Hamster_Key_Generator
             }
 
             // Start generation
+            if (SelectProxy())
+            {
+                Log($"Proxy selected: {_selectedProxy}", Color.LightPink, "Proxy");
+            }
             notifyIconMain.Text = selectedGame.name;
             buttonGenerate.Enabled = false;
             numericUpDownCount.Enabled = false;
@@ -212,6 +214,14 @@ namespace Hamster_Key_Generator
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            // load proxies
+            if (File.Exists("proxies.txt"))
+            {
+                foreach (var item in File.ReadAllLines("proxies.txt"))
+                {
+                    listBoxProxies.Items.Add(item);
+                }
+            }
             RefreshStatics();
             timer1.Start();
             comboBoxGames.Items.Clear();
@@ -221,17 +231,10 @@ namespace Hamster_Key_Generator
             }
             // Load Settings
             // Proxy Settings
-            textBoxSocks5Host.Text = IniData.ReadData("proxy", "socks5_host", "127.0.0.1");
-            textBoxSocks5Port.Text = IniData.ReadData("proxy", "socks5_port", "1080");
-            textBoxHttpHost.Text = IniData.ReadData("proxy", "http_host", "127.0.0.1");
-            textBoxHttpPort.Text = IniData.ReadData("proxy", "http_port", "80");
             switch (IniData.ReadData("proxy", "type"))
             {
-                case "socks5":
+                case "auto":
                     radioButtonProxy2.Checked = true;
-                    break;
-                case "http":
-                    radioButtonProxy3.Checked = true;
                     break;
                 default:
                     radioButtonProxy1.Checked = true;
@@ -352,6 +355,10 @@ namespace Hamster_Key_Generator
                 {
                     SystemSounds.Exclamation.Play();
                     Log("Login failed: " + e.Message, Color.Red, section: processName);
+                    if (SelectProxy())
+                    {
+                        Log($"Proxy switched to: {_selectedProxy}", Color.LightPink, "Proxy");
+                    }
                     await Task.Delay(new Random().Next(0, 3000) + 5000);
                     keyNumber--;
                     continue;
@@ -390,6 +397,10 @@ namespace Hamster_Key_Generator
                     {
                         SystemSounds.Exclamation.Play();
                         Log("Http error: " + e.Message, Color.Red, section: processName);
+                        if (SelectProxy())
+                        {
+                            Log($"Proxy switched to: {_selectedProxy}", Color.LightPink, "Proxy");
+                        }
                         continue;
                     }
 
@@ -500,13 +511,9 @@ namespace Hamster_Key_Generator
             _progressBarMain = toolStripProgressBarMain;
             _richTextBoxLogs = richTextBoxLogs;
             _radioNoProxy = radioButtonProxy1;
-            _radioSocks5 = radioButtonProxy2;
-            _radioHttp = radioButtonProxy3;
-            _textBoxSocks5Host = textBoxSocks5Host;
-            _textBoxSocks5Port = textBoxSocks5Port;
-            _textBoxHttpHost = textBoxHttpHost;
-            _textBoxHttpPort = textBoxHttpPort;
+            _radioAutoProxy = radioButtonProxy2;
             _notifyIconMain = notifyIconMain;
+            _listBoxProxies = listBoxProxies;
         }
 
         private static Color GetColorFromText(string input)
@@ -569,30 +576,20 @@ namespace Hamster_Key_Generator
 
         private void radioButtonProxy2_CheckedChanged(object sender, EventArgs e)
         {
-            groupBoxSocks5.Enabled = radioButtonProxy2.Checked;
         }
 
         private void radioButtonProxy3_CheckedChanged(object sender, EventArgs e)
         {
-            groupBoxHttp.Enabled = radioButtonProxy3.Checked;
         }
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Save Setting
             // Proxt Settings
-            IniData.WriteData("proxy", "socks5_host", textBoxSocks5Host.Text);
-            IniData.WriteData("proxy", "socks5_port", textBoxSocks5Port.Text);
-            IniData.WriteData("proxy", "http_host", textBoxHttpHost.Text);
-            IniData.WriteData("proxy", "http_port", textBoxHttpPort.Text);
             string proxyType = "no-proxy";
             if (radioButtonProxy2.Checked)
             {
-                proxyType = "socks5";
-            }
-            else if (radioButtonProxy3.Checked)
-            {
-                proxyType = "http";
+                proxyType = "auto";
             }
             IniData.WriteData("proxy", "type", proxyType);
             // Delay Settings
@@ -601,21 +598,47 @@ namespace Hamster_Key_Generator
 
         private static IFlurlClient GetFlurlClient()
         {
-            var httpClientHandler = new HttpClientHandler { };
-            if (_radioSocks5.Checked)
+            var httpClientHandler = new HttpClientHandler();
+            if (_listBoxProxies.Items.Count > 0 && _radioAutoProxy.Checked)
             {
-                httpClientHandler.Proxy = new HttpToSocks5Proxy(_textBoxSocks5Host.Text, int.Parse(_textBoxSocks5Port.Text)); ;
-                httpClientHandler.UseProxy = true;
-            }
-            else if (_radioHttp.Checked)
-            {
-                string proxyUri = @"http://" + _textBoxHttpHost.Text + ":" + _textBoxHttpPort.Text;
-                httpClientHandler.Proxy = new WebProxy(proxyUri);
-                httpClientHandler.UseProxy = true;
+                string[] parts = _selectedProxy.Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts[0] == "socks5")
+                {
+                    httpClientHandler.Proxy = new HttpToSocks5Proxy(parts[1], int.Parse(parts[2]));
+                    httpClientHandler.UseProxy = true;
+                }
+                else if (parts[0] == "http")
+                {
+                    string proxyUri = _selectedProxy;
+                    httpClientHandler.Proxy = new WebProxy(proxyUri);
+                    httpClientHandler.UseProxy = true;
+                }
             }
             var httpClient = new HttpClient(httpClientHandler);
             var flurlClient = new FlurlClient(httpClient);
             return flurlClient;
+        }
+
+        private static bool SelectProxy()
+        {
+            if (_listBoxProxies.Items.Count > 0)
+            {
+                Random random = new Random();
+                string randomItem = null;
+                while (randomItem == null && randomItem == _lastProxy)
+                {
+                    int randomIndex = random.Next(_listBoxProxies.Items.Count);
+                    randomItem = _listBoxProxies.Items[randomIndex].ToString();
+                    if (_listBoxProxies.Items.Count == 1)
+                    {
+                        break;
+                    }
+                }
+                _selectedProxy = randomItem;
+                _lastProxy = randomItem;
+                return true;
+            }
+            return false;
         }
 
         private void buttonExportKeys_Click(object sender, EventArgs e)
@@ -654,6 +677,58 @@ namespace Hamster_Key_Generator
                 FileName = "https://github.com/artariya",
                 UseShellExecute = true
             });
+        }
+
+        private void radioButtonProxy1_CheckedChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void buttonProxyAdd_Click(object sender, EventArgs e)
+        {
+            if (!String.IsNullOrEmpty(textBoxProxyHost.Text)
+                && !String.IsNullOrEmpty(textBoxProxyPort.Text)
+                && comboBoxProxyType.SelectedIndex >= 0)
+            {
+                string proxy;
+                switch (comboBoxProxyType.Text.ToLower())
+                {
+                    case "socks5":
+                        proxy = "socks5://";
+                        break;
+                    case "http":
+                        proxy = "http://";
+                        break;
+                    default:
+                        MessageBox.Show("Select a proxy type", "select type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                }
+                proxy += textBoxProxyHost.Text;
+                proxy += ":";
+                proxy += textBoxProxyPort.Text;
+
+                listBoxProxies.Items.Add(proxy);
+                SaveProxies();
+            }
+        }
+
+        private void buttonProxyRemove_Click(object sender, EventArgs e)
+        {
+            if (listBoxProxies.SelectedIndex >= 0)
+            {
+                listBoxProxies.Items.RemoveAt(listBoxProxies.SelectedIndex);
+            }
+            SaveProxies();
+        }
+
+        private void SaveProxies()
+        {
+            using (StreamWriter writer = new StreamWriter("proxies.txt", false))
+            {
+                foreach (var item in listBoxProxies.Items)
+                {
+                    writer.WriteLine(item.ToString());
+                }
+            }
         }
     }
 }
