@@ -55,9 +55,13 @@ namespace Hamster_Key_Generator
             this.numericUpDownProccess = new System.Windows.Forms.NumericUpDown();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.buttonUpdate = new System.Windows.Forms.Button();
             this.tabPageDleyas = new System.Windows.Forms.TabPage();
             this.tabPageProxy = new System.Windows.Forms.TabPage();
             this.groupBoxProxy = new System.Windows.Forms.GroupBox();
+            this.checkBoxRemoveBadProxy = new System.Windows.Forms.CheckBox();
+            this.numericUpDownTimeOut = new System.Windows.Forms.NumericUpDown();
+            this.label8 = new System.Windows.Forms.Label();
             this.groupBoxProxies = new System.Windows.Forms.GroupBox();
             this.buttonProxyRemove = new System.Windows.Forms.Button();
             this.buttonProxyAdd = new System.Windows.Forms.Button();
@@ -86,6 +90,7 @@ namespace Hamster_Key_Generator
             this.tabPageDleyas.SuspendLayout();
             this.tabPageProxy.SuspendLayout();
             this.groupBoxProxy.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTimeOut)).BeginInit();
             this.groupBoxProxies.SuspendLayout();
             this.tabPageDataBase.SuspendLayout();
             this.tabPageInfo.SuspendLayout();
@@ -94,7 +99,7 @@ namespace Hamster_Key_Generator
             // buttonGenerate
             // 
             this.buttonGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonGenerate.Location = new System.Drawing.Point(371, 19);
+            this.buttonGenerate.Location = new System.Drawing.Point(371, 17);
             this.buttonGenerate.Name = "buttonGenerate";
             this.buttonGenerate.Size = new System.Drawing.Size(75, 23);
             this.buttonGenerate.TabIndex = 0;
@@ -110,7 +115,7 @@ namespace Hamster_Key_Generator
             this.comboBoxGames.FormattingEnabled = true;
             this.comboBoxGames.Location = new System.Drawing.Point(9, 19);
             this.comboBoxGames.Name = "comboBoxGames";
-            this.comboBoxGames.Size = new System.Drawing.Size(204, 21);
+            this.comboBoxGames.Size = new System.Drawing.Size(123, 21);
             this.comboBoxGames.TabIndex = 1;
             this.comboBoxGames.SelectedIndexChanged += new System.EventHandler(this.comboBoxGames_SelectedIndexChanged);
             // 
@@ -126,7 +131,7 @@ namespace Hamster_Key_Generator
             // numericUpDownCount
             // 
             this.numericUpDownCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDownCount.Location = new System.Drawing.Point(219, 18);
+            this.numericUpDownCount.Location = new System.Drawing.Point(219, 20);
             this.numericUpDownCount.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -145,7 +150,7 @@ namespace Hamster_Key_Generator
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(216, 2);
+            this.label2.Location = new System.Drawing.Point(216, 3);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 5;
@@ -306,7 +311,7 @@ namespace Hamster_Key_Generator
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(292, 2);
+            this.label4.Location = new System.Drawing.Point(292, 3);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(51, 13);
             this.label4.TabIndex = 17;
@@ -315,7 +320,7 @@ namespace Hamster_Key_Generator
             // numericUpDownProccess
             // 
             this.numericUpDownProccess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDownProccess.Location = new System.Drawing.Point(295, 18);
+            this.numericUpDownProccess.Location = new System.Drawing.Point(295, 20);
             this.numericUpDownProccess.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -346,6 +351,7 @@ namespace Hamster_Key_Generator
             // 
             // tabPageMain
             // 
+            this.tabPageMain.Controls.Add(this.buttonUpdate);
             this.tabPageMain.Controls.Add(this.groupBoxSettings);
             this.tabPageMain.Controls.Add(this.label4);
             this.tabPageMain.Controls.Add(this.richTextBoxLogs);
@@ -362,6 +368,17 @@ namespace Hamster_Key_Generator
             this.tabPageMain.TabIndex = 0;
             this.tabPageMain.Text = "Main";
             this.tabPageMain.UseVisualStyleBackColor = true;
+            // 
+            // buttonUpdate
+            // 
+            this.buttonUpdate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonUpdate.Location = new System.Drawing.Point(138, 17);
+            this.buttonUpdate.Name = "buttonUpdate";
+            this.buttonUpdate.Size = new System.Drawing.Size(75, 23);
+            this.buttonUpdate.TabIndex = 18;
+            this.buttonUpdate.Text = "Update";
+            this.buttonUpdate.UseVisualStyleBackColor = true;
+            this.buttonUpdate.Click += new System.EventHandler(this.buttonUpdate_Click);
             // 
             // tabPageDleyas
             // 
@@ -389,6 +406,9 @@ namespace Hamster_Key_Generator
             // 
             // groupBoxProxy
             // 
+            this.groupBoxProxy.Controls.Add(this.checkBoxRemoveBadProxy);
+            this.groupBoxProxy.Controls.Add(this.numericUpDownTimeOut);
+            this.groupBoxProxy.Controls.Add(this.label8);
             this.groupBoxProxy.Controls.Add(this.groupBoxProxies);
             this.groupBoxProxy.Controls.Add(this.radioButtonProxy1);
             this.groupBoxProxy.Controls.Add(this.radioButtonProxy2);
@@ -399,6 +419,49 @@ namespace Hamster_Key_Generator
             this.groupBoxProxy.TabIndex = 3;
             this.groupBoxProxy.TabStop = false;
             this.groupBoxProxy.Text = "Proxy settings";
+            // 
+            // checkBoxRemoveBadProxy
+            // 
+            this.checkBoxRemoveBadProxy.AutoSize = true;
+            this.checkBoxRemoveBadProxy.Checked = true;
+            this.checkBoxRemoveBadProxy.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxRemoveBadProxy.Location = new System.Drawing.Point(176, 58);
+            this.checkBoxRemoveBadProxy.Name = "checkBoxRemoveBadProxy";
+            this.checkBoxRemoveBadProxy.Size = new System.Drawing.Size(123, 17);
+            this.checkBoxRemoveBadProxy.TabIndex = 7;
+            this.checkBoxRemoveBadProxy.Text = "Remove bad proxies";
+            this.checkBoxRemoveBadProxy.UseVisualStyleBackColor = true;
+            // 
+            // numericUpDownTimeOut
+            // 
+            this.numericUpDownTimeOut.Location = new System.Drawing.Point(176, 32);
+            this.numericUpDownTimeOut.Maximum = new decimal(new int[] {
+            120,
+            0,
+            0,
+            0});
+            this.numericUpDownTimeOut.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDownTimeOut.Name = "numericUpDownTimeOut";
+            this.numericUpDownTimeOut.Size = new System.Drawing.Size(120, 20);
+            this.numericUpDownTimeOut.TabIndex = 6;
+            this.numericUpDownTimeOut.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(173, 16);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(91, 13);
+            this.label8.TabIndex = 5;
+            this.label8.Text = "Timeout limit (sec)";
             // 
             // groupBoxProxies
             // 
@@ -412,9 +475,9 @@ namespace Hamster_Key_Generator
             this.groupBoxProxies.Controls.Add(this.label5);
             this.groupBoxProxies.Controls.Add(this.listBoxProxies);
             this.groupBoxProxies.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.groupBoxProxies.Location = new System.Drawing.Point(3, 65);
+            this.groupBoxProxies.Location = new System.Drawing.Point(3, 80);
             this.groupBoxProxies.Name = "groupBoxProxies";
-            this.groupBoxProxies.Size = new System.Drawing.Size(440, 387);
+            this.groupBoxProxies.Size = new System.Drawing.Size(440, 372);
             this.groupBoxProxies.TabIndex = 4;
             this.groupBoxProxies.TabStop = false;
             this.groupBoxProxies.Text = "Proxies";
@@ -508,7 +571,7 @@ namespace Hamster_Key_Generator
             this.listBoxProxies.FormattingEnabled = true;
             this.listBoxProxies.Location = new System.Drawing.Point(6, 58);
             this.listBoxProxies.Name = "listBoxProxies";
-            this.listBoxProxies.Size = new System.Drawing.Size(347, 316);
+            this.listBoxProxies.Size = new System.Drawing.Size(347, 290);
             this.listBoxProxies.TabIndex = 0;
             // 
             // radioButtonProxy1
@@ -594,6 +657,7 @@ namespace Hamster_Key_Generator
             this.notifyIconMain.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIconMain.Icon")));
             this.notifyIconMain.Text = "Hamster Key Generator";
             this.notifyIconMain.Visible = true;
+            this.notifyIconMain.BalloonTipClicked += new System.EventHandler(this.notifyIconMain_BalloonTipClicked);
             this.notifyIconMain.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIconMain_MouseDoubleClick);
             // 
             // FormMain
@@ -605,7 +669,7 @@ namespace Hamster_Key_Generator
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormMain";
-            this.Text = "Hamster Key Generator v1.3.0";
+            this.Text = "Hamster Key Generator v1.4.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
             this.Load += new System.EventHandler(this.FormMain_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCount)).EndInit();
@@ -622,6 +686,7 @@ namespace Hamster_Key_Generator
             this.tabPageProxy.ResumeLayout(false);
             this.groupBoxProxy.ResumeLayout(false);
             this.groupBoxProxy.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTimeOut)).EndInit();
             this.groupBoxProxies.ResumeLayout(false);
             this.groupBoxProxies.PerformLayout();
             this.tabPageDataBase.ResumeLayout(false);
@@ -682,6 +747,10 @@ namespace Hamster_Key_Generator
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ListBox listBoxProxies;
+        private System.Windows.Forms.Button buttonUpdate;
+        private System.Windows.Forms.CheckBox checkBoxRemoveBadProxy;
+        private System.Windows.Forms.NumericUpDown numericUpDownTimeOut;
+        private System.Windows.Forms.Label label8;
     }
 }
 

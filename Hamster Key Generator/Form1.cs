@@ -21,7 +21,7 @@ namespace Hamster_Key_Generator
 {
     public partial class FormMain : Form
     {
-        private readonly Game[] _games;
+        private Game[] _games;
         private static int _progressTime;
         private static ToolStripLabel _labelKeys;
         private static ToolStripLabel _labelRequest;
@@ -35,6 +35,8 @@ namespace Hamster_Key_Generator
         private static ListBox _listBoxProxies;
         private static string _lastProxy;
         private static string _selectedProxy;
+        private static NumericUpDown _timeOut;
+        private static CheckBox _removeBadProxies;
 
 
         public FormMain()
@@ -100,6 +102,7 @@ namespace Hamster_Key_Generator
             numericUpDownProccess.Enabled = false;
             comboBoxGames.Enabled = false;
             checkBoxProccessRandomDelay.Enabled = false;
+            buttonUpdate.Enabled = false;
             int countProcess = (int)numericUpDownProccess.Value;
             labelProccess.Text = $@"Processes: {countProcess}";
             Task[] processes = new Task[countProcess];
@@ -121,6 +124,7 @@ namespace Hamster_Key_Generator
             numericUpDownProccess.Enabled = true;
             comboBoxGames.Enabled = true;
             checkBoxProccessRandomDelay.Enabled = true;
+            buttonUpdate.Enabled = true;
         }
 
         private static async Task<string> Login(string token)
@@ -224,11 +228,7 @@ namespace Hamster_Key_Generator
             }
             RefreshStatics();
             timer1.Start();
-            comboBoxGames.Items.Clear();
-            for (int i = 0; i < _games.Count(); i++)
-            {
-                comboBoxGames.Items.Add(_games[i].name);
-            }
+            LoadGames();
             // Load Settings
             // Proxy Settings
             switch (IniData.ReadData("proxy", "type"))
@@ -240,8 +240,23 @@ namespace Hamster_Key_Generator
                     radioButtonProxy1.Checked = true;
                     break;
             }
+            checkBoxRemoveBadProxy.Checked = IniData.ReadData("proxy", "remove_bad_proxies") == "yes";
+            numericUpDownTimeOut.Value = int.Parse(IniData.ReadData("proxy", "timeout", "10"));
             // Delay Settings
             checkBoxProccessRandomDelay.Checked = IniData.ReadData("delay", "random_proccess") == "yes";
+        }
+
+        private void LoadGames()
+        {
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "games.json");
+            string jsonContent = File.ReadAllText(filePath);
+            _games = JsonConvert.DeserializeObject<Game[]>(jsonContent);
+
+            comboBoxGames.Items.Clear();
+            for (int i = 0; i < _games.Count(); i++)
+            {
+                comboBoxGames.Items.Add(_games[i].name);
+            }
         }
 
         private static void Log(string text, Color color = default(Color), string section = null)
@@ -355,6 +370,7 @@ namespace Hamster_Key_Generator
                 {
                     SystemSounds.Exclamation.Play();
                     Log("Login failed: " + e.Message, Color.Red, section: processName);
+                    RemoveBadProxy();
                     if (SelectProxy())
                     {
                         Log($"Proxy switched to: {_selectedProxy}", Color.LightPink, "Proxy");
@@ -397,6 +413,7 @@ namespace Hamster_Key_Generator
                     {
                         SystemSounds.Exclamation.Play();
                         Log("Http error: " + e.Message, Color.Red, section: processName);
+                        RemoveBadProxy();
                         if (SelectProxy())
                         {
                             Log($"Proxy switched to: {_selectedProxy}", Color.LightPink, "Proxy");
@@ -514,6 +531,8 @@ namespace Hamster_Key_Generator
             _radioAutoProxy = radioButtonProxy2;
             _notifyIconMain = notifyIconMain;
             _listBoxProxies = listBoxProxies;
+            _timeOut = numericUpDownTimeOut;
+            _removeBadProxies = checkBoxRemoveBadProxy;
         }
 
         private static Color GetColorFromText(string input)
@@ -592,6 +611,8 @@ namespace Hamster_Key_Generator
                 proxyType = "auto";
             }
             IniData.WriteData("proxy", "type", proxyType);
+            IniData.WriteData("proxy", "remove_bad_proxies", checkBoxRemoveBadProxy.Checked ? "yes" : "no");
+            IniData.WriteData("proxy", "timeout", ((int)numericUpDownTimeOut.Value).ToString());
             // Delay Settings
             IniData.WriteData("delay", "random_proccess", checkBoxProccessRandomDelay.Checked ? "yes" : "no");
         }
@@ -615,17 +636,40 @@ namespace Hamster_Key_Generator
                 }
             }
             var httpClient = new HttpClient(httpClientHandler);
+            httpClient.Timeout = TimeSpan.FromSeconds((int)_timeOut.Value);
             var flurlClient = new FlurlClient(httpClient);
             return flurlClient;
         }
 
+        private static void RemoveBadProxy()
+        {
+            if (!_removeBadProxies.Checked)
+            {
+                return;
+            }
+            string[] parts = _selectedProxy.Split(new char[] { ':', '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts[1] == "127.0.0.1")
+            {
+                return;
+            }
+            for (int i = 0; i < _listBoxProxies.Items.Count; i++)
+            {
+                if (_listBoxProxies.Items[i].ToString() == _selectedProxy)
+                {
+                    _listBoxProxies.Items.RemoveAt(i);
+                    break;
+                }
+            }
+            SaveProxies();
+
+        }
         private static bool SelectProxy()
         {
             if (_listBoxProxies.Items.Count > 0)
             {
                 Random random = new Random();
                 string randomItem = null;
-                while (randomItem == null && randomItem == _lastProxy)
+                while (randomItem == null || randomItem == _lastProxy)
                 {
                     int randomIndex = random.Next(_listBoxProxies.Items.Count);
                     randomItem = _listBoxProxies.Items[randomIndex].ToString();
@@ -668,6 +712,10 @@ namespace Hamster_Key_Generator
         private void notifyIconMain_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             this.Visible = !this.Visible;
+            if (this.Visible)
+            {
+                this.Focus();
+            }
         }
 
         private void buttonGithub_Click(object sender, EventArgs e)
@@ -720,15 +768,50 @@ namespace Hamster_Key_Generator
             SaveProxies();
         }
 
-        private void SaveProxies()
+        private static void SaveProxies()
         {
             using (StreamWriter writer = new StreamWriter("proxies.txt", false))
             {
-                foreach (var item in listBoxProxies.Items)
+                foreach (var item in _listBoxProxies.Items)
                 {
                     writer.WriteLine(item.ToString());
                 }
             }
+        }
+
+        private async void buttonUpdate_Click(object sender, EventArgs e)
+        {
+            string currentFilePath = Path.Combine(Application.StartupPath, "games.json");
+            string url = "https://raw.githubusercontent.com/Artariya/Hamster-Key-Generator/master/Hamster%20Key%20Generator/games.json";
+            buttonUpdate.Enabled = false;
+            try
+            {
+                string remoteJsonContent = await url.GetStringAsync();
+                if (File.Exists(currentFilePath))
+                {
+                    string localJsonContent = File.ReadAllText(currentFilePath);
+                    if (JToken.DeepEquals(JToken.Parse(localJsonContent), JToken.Parse(remoteJsonContent)))
+                    {
+                        MessageBox.Show("The program is already up to date.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                }
+
+                File.WriteAllText(currentFilePath, remoteJsonContent);
+                MessageBox.Show("The program has been updated successfully!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadGames();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            buttonUpdate.Enabled = true;
+        }
+
+        private void notifyIconMain_BalloonTipClicked(object sender, EventArgs e)
+        {
+            this.Visible = true;
+            this.Focus();
         }
     }
 }
