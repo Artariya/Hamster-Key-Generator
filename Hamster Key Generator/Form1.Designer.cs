@@ -75,7 +75,10 @@ namespace Hamster_Key_Generator
             this.radioButtonProxy1 = new System.Windows.Forms.RadioButton();
             this.radioButtonProxy2 = new System.Windows.Forms.RadioButton();
             this.tabPageDataBase = new System.Windows.Forms.TabPage();
-            this.label9 = new System.Windows.Forms.Label();
+            this.labelDbCountKeys = new System.Windows.Forms.Label();
+            this.buttonDbExport = new System.Windows.Forms.Button();
+            this.buttonDbRefresh = new System.Windows.Forms.Button();
+            this.dataGridViewKeys = new System.Windows.Forms.DataGridView();
             this.tabPageInfo = new System.Windows.Forms.TabPage();
             this.buttonGithub = new System.Windows.Forms.Button();
             this.label10 = new System.Windows.Forms.Label();
@@ -93,6 +96,7 @@ namespace Hamster_Key_Generator
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTimeOut)).BeginInit();
             this.groupBoxProxies.SuspendLayout();
             this.tabPageDataBase.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewKeys)).BeginInit();
             this.tabPageInfo.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -600,7 +604,10 @@ namespace Hamster_Key_Generator
             // 
             // tabPageDataBase
             // 
-            this.tabPageDataBase.Controls.Add(this.label9);
+            this.tabPageDataBase.Controls.Add(this.labelDbCountKeys);
+            this.tabPageDataBase.Controls.Add(this.buttonDbExport);
+            this.tabPageDataBase.Controls.Add(this.buttonDbRefresh);
+            this.tabPageDataBase.Controls.Add(this.dataGridViewKeys);
             this.tabPageDataBase.Location = new System.Drawing.Point(4, 22);
             this.tabPageDataBase.Name = "tabPageDataBase";
             this.tabPageDataBase.Padding = new System.Windows.Forms.Padding(3);
@@ -609,16 +616,53 @@ namespace Hamster_Key_Generator
             this.tabPageDataBase.Text = "DataBase";
             this.tabPageDataBase.UseVisualStyleBackColor = true;
             // 
-            // label9
+            // labelDbCountKeys
             // 
-            this.label9.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label9.Font = new System.Drawing.Font("Consolas", 27.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.Location = new System.Drawing.Point(3, 3);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(446, 455);
-            this.label9.TabIndex = 0;
-            this.label9.Text = "Coming soon";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.labelDbCountKeys.AutoSize = true;
+            this.labelDbCountKeys.Location = new System.Drawing.Point(6, 11);
+            this.labelDbCountKeys.Name = "labelDbCountKeys";
+            this.labelDbCountKeys.Size = new System.Drawing.Size(39, 13);
+            this.labelDbCountKeys.TabIndex = 3;
+            this.labelDbCountKeys.Text = "0 Keys";
+            // 
+            // buttonDbExport
+            // 
+            this.buttonDbExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonDbExport.Location = new System.Drawing.Point(290, 6);
+            this.buttonDbExport.Name = "buttonDbExport";
+            this.buttonDbExport.Size = new System.Drawing.Size(75, 23);
+            this.buttonDbExport.TabIndex = 2;
+            this.buttonDbExport.Text = "Export Key";
+            this.buttonDbExport.UseVisualStyleBackColor = true;
+            this.buttonDbExport.Click += new System.EventHandler(this.buttonDbExport_Click);
+            // 
+            // buttonDbRefresh
+            // 
+            this.buttonDbRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonDbRefresh.Location = new System.Drawing.Point(371, 6);
+            this.buttonDbRefresh.Name = "buttonDbRefresh";
+            this.buttonDbRefresh.Size = new System.Drawing.Size(75, 23);
+            this.buttonDbRefresh.TabIndex = 1;
+            this.buttonDbRefresh.Text = "Refresh";
+            this.buttonDbRefresh.UseVisualStyleBackColor = true;
+            this.buttonDbRefresh.Click += new System.EventHandler(this.buttonDbRefresh_Click);
+            // 
+            // dataGridViewKeys
+            // 
+            this.dataGridViewKeys.AllowUserToAddRows = false;
+            this.dataGridViewKeys.AllowUserToDeleteRows = false;
+            this.dataGridViewKeys.AllowUserToOrderColumns = true;
+            this.dataGridViewKeys.AllowUserToResizeRows = false;
+            this.dataGridViewKeys.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridViewKeys.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewKeys.Location = new System.Drawing.Point(6, 35);
+            this.dataGridViewKeys.Name = "dataGridViewKeys";
+            this.dataGridViewKeys.ReadOnly = true;
+            this.dataGridViewKeys.Size = new System.Drawing.Size(438, 420);
+            this.dataGridViewKeys.TabIndex = 0;
+            this.dataGridViewKeys.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewKeys_CellClick);
             // 
             // tabPageInfo
             // 
@@ -669,7 +713,7 @@ namespace Hamster_Key_Generator
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormMain";
-            this.Text = "Hamster Key Generator v1.4.0";
+            this.Text = "Hamster Key Generator v1.5.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
             this.Load += new System.EventHandler(this.FormMain_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCount)).EndInit();
@@ -690,6 +734,8 @@ namespace Hamster_Key_Generator
             this.groupBoxProxies.ResumeLayout(false);
             this.groupBoxProxies.PerformLayout();
             this.tabPageDataBase.ResumeLayout(false);
+            this.tabPageDataBase.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewKeys)).EndInit();
             this.tabPageInfo.ResumeLayout(false);
             this.tabPageInfo.PerformLayout();
             this.ResumeLayout(false);
@@ -733,7 +779,6 @@ namespace Hamster_Key_Generator
         private System.Windows.Forms.Button buttonExportKeys;
         private System.Windows.Forms.NotifyIcon notifyIconMain;
         private System.Windows.Forms.TabPage tabPageDataBase;
-        private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TabPage tabPageInfo;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Button buttonGithub;
@@ -751,6 +796,10 @@ namespace Hamster_Key_Generator
         private System.Windows.Forms.CheckBox checkBoxRemoveBadProxy;
         private System.Windows.Forms.NumericUpDown numericUpDownTimeOut;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.DataGridView dataGridViewKeys;
+        private System.Windows.Forms.Button buttonDbRefresh;
+        private System.Windows.Forms.Label labelDbCountKeys;
+        private System.Windows.Forms.Button buttonDbExport;
     }
 }
 

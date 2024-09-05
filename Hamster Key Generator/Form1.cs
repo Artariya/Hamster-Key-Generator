@@ -16,6 +16,7 @@ using System.Net;
 using MihaZupan;
 using System.Media;
 using System.Diagnostics;
+using System.Data;
 
 namespace Hamster_Key_Generator
 {
@@ -37,6 +38,8 @@ namespace Hamster_Key_Generator
         private static string _selectedProxy;
         private static NumericUpDown _timeOut;
         private static CheckBox _removeBadProxies;
+        private static BindingSource _bindingSource = new BindingSource();
+        public static Export ExportForm;
 
 
         public FormMain()
@@ -215,18 +218,23 @@ namespace Hamster_Key_Generator
             string randomNumbers = string.Concat(Enumerable.Range(0, 19).Select(_ => random.Next(10)));
             return $"{timestamp}-{randomNumbers}";
         }
-
+        private static void LoadProxies()
+        {
+            if (File.Exists("proxies.txt"))
+            {
+                _listBoxProxies.Items.Clear();
+                foreach (var item in File.ReadAllLines("proxies.txt"))
+                {
+                    _listBoxProxies.Items.Add(item);
+                }
+            }
+        }
         private void FormMain_Load(object sender, EventArgs e)
         {
             // load proxies
-            if (File.Exists("proxies.txt"))
-            {
-                foreach (var item in File.ReadAllLines("proxies.txt"))
-                {
-                    listBoxProxies.Items.Add(item);
-                }
-            }
             RefreshStatics();
+            LoadProxies();
+            LoadDbKeys();
             timer1.Start();
             LoadGames();
             // Load Settings
@@ -368,7 +376,7 @@ namespace Hamster_Key_Generator
                 }
                 catch (Exception e)
                 {
-                    SystemSounds.Exclamation.Play();
+                    //SystemSounds.Exclamation.Play();
                     Log("Login failed: " + e.Message, Color.Red, section: processName);
                     RemoveBadProxy();
                     if (SelectProxy())
@@ -411,7 +419,7 @@ namespace Hamster_Key_Generator
                     }
                     catch (Exception e)
                     {
-                        SystemSounds.Exclamation.Play();
+                        // SystemSounds.Exclamation.Play();
                         Log("Http error: " + e.Message, Color.Red, section: processName);
                         RemoveBadProxy();
                         if (SelectProxy())
@@ -485,6 +493,12 @@ namespace Hamster_Key_Generator
                         break;
                     case 100:
                         Log("Key exists!", Color.Pink, section: processName);
+                        break;
+                    default:
+                        if (ExportForm != null && !ExportForm.IsDisposed)
+                        {
+                            ExportForm.LoadKeyStorage();
+                        }
                         break;
                 }
 
@@ -652,6 +666,7 @@ namespace Hamster_Key_Generator
             {
                 return;
             }
+            LoadProxies();
             for (int i = 0; i < _listBoxProxies.Items.Count; i++)
             {
                 if (_listBoxProxies.Items[i].ToString() == _selectedProxy)
@@ -665,6 +680,7 @@ namespace Hamster_Key_Generator
         }
         private static bool SelectProxy()
         {
+            LoadProxies();
             if (_listBoxProxies.Items.Count > 0)
             {
                 Random random = new Random();
@@ -812,6 +828,75 @@ namespace Hamster_Key_Generator
         {
             this.Visible = true;
             this.Focus();
+        }
+
+        private void LoadDbKeys()
+        {
+            string dbPath = "Data Source=keys.db";
+            DataTable dataTable = new DataTable();
+            using (var connection = new SQLiteConnection(dbPath))
+            {
+                string query = "SELECT id, key, platform FROM keys";
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(query, connection);
+                adapter.Fill(dataTable);
+            }
+            dataGridViewKeys.DataSource = dataTable;
+            dataGridViewKeys.Columns["id"].SortMode = DataGridViewColumnSortMode.Automatic;
+            dataGridViewKeys.Columns["key"].SortMode = DataGridViewColumnSortMode.Automatic;
+            dataGridViewKeys.Columns["platform"].SortMode = DataGridViewColumnSortMode.Automatic;
+
+            DataGridViewButtonColumn deleteButtonColumn = new DataGridViewButtonColumn();
+            deleteButtonColumn.Name = "deleteButton";
+            deleteButtonColumn.HeaderText = "";
+            deleteButtonColumn.Text = "Delete";
+            deleteButtonColumn.UseColumnTextForButtonValue = true;
+            deleteButtonColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+            dataGridViewKeys.Columns.Add(deleteButtonColumn);
+
+            labelDbCountKeys.Text = dataGridViewKeys.Rows.Count + " Keys";
+        }
+
+        private void buttonDbRefresh_Click(object sender, EventArgs e)
+        {
+            LoadDbKeys();
+        }
+
+        private void dataGridViewKeys_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == dataGridViewKeys.Columns["deleteButton"].Index && e.RowIndex >= 0)
+            {
+                int id = Convert.ToInt32(dataGridViewKeys.Rows[e.RowIndex].Cells["Id"].Value);
+                var confirmResult = MessageBox.Show("Are you sure you want to delete this record?",
+                                                    "Confirm Delete",
+                                                    MessageBoxButtons.YesNo,
+                                                    MessageBoxIcon.Question);
+                if (confirmResult == DialogResult.Yes)
+                {
+                    DeleteRecordFromDatabase(id);
+                    dataGridViewKeys.Rows.RemoveAt(e.RowIndex);
+                }
+            }
+        }
+
+        private void DeleteRecordFromDatabase(int id)
+        {
+            string dbPath = "Data Source=keys.db";
+
+            using (var connection = new SQLiteConnection(dbPath))
+            {
+                string deleteQuery = "DELETE FROM keys WHERE id = @Id";
+                connection.Execute(deleteQuery, new { Id = id });
+            }
+        }
+
+        private void buttonDbExport_Click(object sender, EventArgs e)
+        {
+            if (ExportForm == null || ExportForm.IsDisposed)
+            {
+                ExportForm = new Export();
+            }
+            ExportForm.Show();
+            ExportForm.Focus();
         }
     }
 }
