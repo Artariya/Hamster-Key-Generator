@@ -1,6 +1,7 @@
 # Hamster Key Generator
-![image](https://github.com/user-attachments/assets/83acce7a-ab50-47f7-8b5d-c7e8925cd522)
-![image](https://github.com/user-attachments/assets/2f868bd5-c8b4-4386-8f3b-0e69c7805da7)
+![image](https://github.com/user-attachments/assets/5b5d00da-2ec3-4ee6-b35a-169cfb60f991)
+![image](https://github.com/user-attachments/assets/f572ba04-ce64-4e5c-820d-6fc3dccb342e)
+
 
 ### Games
 - Mud Racing
